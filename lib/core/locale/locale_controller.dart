@@ -12,16 +12,16 @@ const List<Locale> supportedLocales = [
 ];
 
 /// Current app locale. Null = use device locale.
-final localeProvider = StateNotifierProvider<LocaleNotifier, Locale?>((ref) {
-  return LocaleNotifier();
-});
+final localeProvider = NotifierProvider<LocaleNotifier, Locale?>(LocaleNotifier.new);
 
-class LocaleNotifier extends StateNotifier<Locale?> {
-  LocaleNotifier() : super(null) {
-    _load();
-  }
-
+class LocaleNotifier extends Notifier<Locale?> {
   static const String _prefsKey = _localeKey;
+
+  @override
+  Locale? build() {
+    _load();
+    return null;
+  }
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
