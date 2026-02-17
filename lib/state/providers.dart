@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive/hive.dart';
 
-import '../app/app_scaffold.dart';
+import '../app/app_shell.dart';
 import '../core/config/supabase_config.dart';
 import '../core/services/analytics_service.dart';
 import '../core/services/xp_service.dart';
@@ -174,6 +174,24 @@ final goalActionsControllerProvider =
       GoalActionsController.new,
     );
 
+/// Signs out and clears all user-specific local cache so the next user gets fresh profile/goals.
+/// Use this instead of authController.logout() when the user explicitly logs out.
+final logoutAndClearProvider = Provider<Future<void> Function()>((ref) {
+  return () async {
+    try {
+      ref.read(profileBoxProvider).delete('me');
+      ref.read(goalsBoxProvider).clear();
+      ref.read(completionsBoxProvider).clear();
+      ref.read(activeChallengeBoxProvider).clear();
+    } catch (_) {}
+    ref.invalidate(profileControllerProvider);
+    ref.invalidate(goalsControllerProvider);
+    ref.invalidate(completionsControllerProvider);
+    ref.invalidate(activeChallengeProgressModelProvider);
+    await ref.read(authControllerProvider).logout();
+  };
+});
+
 // Derived state
 /// Active challenge with progress (0.0–1.0). Null if none.
 final activeChallengeProgressProvider = Provider<ActiveChallengeProgress?>((
@@ -330,33 +348,36 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '/register',
         builder: (context, state) => const RegisterPage(),
       ),
-      StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) =>
-            AppScaffold(navigationShell: navigationShell),
-        branches: [
-          StatefulShellBranch(
+      ShellRoute(
+        builder: (context, state, child) => AppShell(
+          routerState: state,
+          child: child,
+        ),
+        routes: [
+          GoRoute(
+            path: '/dashboard',
+            builder: (context, state) => const DashboardPage(),
+          ),
+          GoRoute(
+            path: '/challenges',
+            builder: (context, state) => const ChallengeListPage(),
             routes: [
               GoRoute(
-                path: '/dashboard',
-                builder: (context, state) => const DashboardPage(),
+                path: ':id',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'] ?? '';
+                  return ChallengeDetailPage(challengeId: id);
+                },
               ),
             ],
           ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/stats',
-                builder: (context, state) => const StatsPage(),
-              ),
-            ],
+          GoRoute(
+            path: '/stats',
+            builder: (context, state) => const StatsPage(),
           ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/profile',
-                builder: (context, state) => const ProfilePage(),
-              ),
-            ],
+          GoRoute(
+            path: '/profile',
+            builder: (context, state) => const ProfilePage(),
           ),
         ],
       ),
@@ -367,17 +388,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: PremiumPage.routePath,
         builder: (context, state) => const PremiumPage(),
-      ),
-      GoRoute(
-        path: '/challenges',
-        builder: (context, state) => const ChallengeListPage(),
-      ),
-      GoRoute(
-        path: '/challenges/:id',
-        builder: (context, state) {
-          final id = state.pathParameters['id'] ?? '';
-          return ChallengeDetailPage(challengeId: id);
-        },
       ),
     ],
     errorBuilder: (context, state) => _RouterErrorPage(error: state.error),

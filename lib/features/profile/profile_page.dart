@@ -7,8 +7,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/config/supabase_config.dart';
 import '../../core/locale/locale_controller.dart';
 import '../../core/ui/app_spacing.dart';
+import '../../core/ui/responsive.dart';
 import '../../data/models/goal.dart';
-import '../../features/auth/auth_controller.dart';
 import '../../features/premium/premium_page.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/providers.dart';
@@ -87,16 +87,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final l10n = AppLocalizations.of(context)!;
     final currentLocale = ref.watch(localeProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.profile)),
-      body: Padding(
-        padding: const EdgeInsets.all(AppSpacing.grid),
-        child: profileAv.when(
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.grid),
+      child: profileAv.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(child: Text(e.toString())),
           data: (p) {
             _initFromProfile(p);
-            return SingleChildScrollView(
+            final formContent = SingleChildScrollView(
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -189,7 +187,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       const SizedBox(height: AppSpacing.md),
                       OutlinedButton(
                         onPressed: () async {
-                          await ref.read(authControllerProvider).logout();
+                          await ref.read(logoutAndClearProvider)();
                         },
                         child: Text(l10n.signOut),
                       ),
@@ -198,8 +196,22 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 ),
               ),
             );
+            if (Responsive.isDesktop(context)) {
+              return Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 560),
+                  child: Card(
+                    margin: const EdgeInsets.symmetric(vertical: 24),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: formContent,
+                    ),
+                  ),
+                ),
+              );
+            }
+            return formContent;
           },
-        ),
       ),
     );
   }

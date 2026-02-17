@@ -20,7 +20,6 @@ class AuthGate extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authSession = ref.watch(authSessionProvider);
     final locale = ref.watch(localeProvider);
-    final l10n = AppLocalizations.of(context)!;
 
     if (!SupabaseConfig.isConfigured) {
       return MaterialApp(
@@ -30,16 +29,21 @@ class AuthGate extends ConsumerWidget {
         locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Text(
-                l10n.supabaseNotConfigured,
-                textAlign: TextAlign.center,
+        home: Builder(
+          builder: (context) {
+            final l10n = AppLocalizations.of(context)!;
+            return Scaffold(
+              body: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    l10n.supabaseNotConfigured,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       );
     }
@@ -61,22 +65,27 @@ class AuthGate extends ConsumerWidget {
         locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(l10n.authError, style: Theme.of(context).textTheme.titleLarge),
-                  const SizedBox(height: 16),
-                  SelectableText(err.toString()),
-                  const SizedBox(height: 16),
-                  SelectableText(stack.toString()),
-                ],
+        home: Builder(
+          builder: (context) {
+            final l10n = AppLocalizations.of(context)!;
+            return Scaffold(
+              body: SafeArea(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(l10n.authError, style: Theme.of(context).textTheme.titleLarge),
+                      const SizedBox(height: 16),
+                      SelectableText(err.toString()),
+                      const SizedBox(height: 16),
+                      SelectableText(stack.toString()),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
       data: (session) {

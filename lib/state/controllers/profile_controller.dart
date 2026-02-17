@@ -2,11 +2,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/log/app_log.dart';
 import '../../data/models/user_profile.dart';
+import '../../features/auth/auth_controller.dart';
 import '../providers.dart';
 
 class ProfileController extends AsyncNotifier<UserProfile> {
   @override
   Future<UserProfile> build() async {
+    ref.watch(authUserIdProvider);
     final repo = ref.watch(profileRepositoryProvider);
     return repo.loadOrCreate();
   }

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/ui/app_spacing.dart';
 import '../../core/ui/app_theme.dart';
+import '../../core/ui/responsive.dart';
 import '../../data/models/challenge.dart';
 import '../../features/premium/premium_controller.dart';
 import '../../l10n/app_localizations.dart';
@@ -19,29 +20,69 @@ class ChallengeListPage extends ConsumerWidget {
     final challenges = content.getChallenges();
     final isPremium = ref.watch(PremiumController.isPremiumProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.challenges)),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.grid),
-        children: [
-          Text(
-            l10n.challengesIntro,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          ...challenges.map(
-            (c) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: _ChallengeCard(
-                challenge: c,
-                isLocked: c.isPremium && !isPremium,
-                l10n: l10n,
-                onTap: () => context.push('/challenges/${c.id}'),
+    final isDesktop = Responsive.isDesktop(context);
+    final padding = isDesktop ? 24.0 : AppSpacing.grid;
+
+    if (isDesktop) {
+      return CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.all(padding),
+              child: Text(
+                l10n.challengesIntro,
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
             ),
           ),
+          SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: padding),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 360,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                childAspectRatio: 1.1,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final c = challenges[index];
+                  return _ChallengeCard(
+                    challenge: c,
+                    isLocked: c.isPremium && !isPremium,
+                    l10n: l10n,
+                    onTap: () => context.push('/challenges/${c.id}'),
+                  );
+                },
+                childCount: challenges.length,
+              ),
+            ),
+          ),
+          const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
         ],
-      ),
+      );
+    }
+
+    return ListView(
+      padding: const EdgeInsets.all(AppSpacing.grid),
+      children: [
+        Text(
+          l10n.challengesIntro,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        ...challenges.map(
+          (c) => Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: _ChallengeCard(
+              challenge: c,
+              isLocked: c.isPremium && !isPremium,
+              l10n: l10n,
+              onTap: () => context.push('/challenges/${c.id}'),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

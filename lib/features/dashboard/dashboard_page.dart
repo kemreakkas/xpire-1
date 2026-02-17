@@ -31,35 +31,28 @@ class DashboardPage extends ConsumerWidget {
     final xpService = ref.watch(xpServiceProvider);
 
     if (profileAv.isLoading || goalsAv.isLoading) {
-      return const Scaffold(body: _Loading());
+      return const Center(child: _Loading());
     }
     if (profileAv.hasError) {
-      return Scaffold(body: _Error(error: profileAv.error.toString()));
+      return Center(child: _Error(error: profileAv.error.toString()));
     }
     if (goalsAv.hasError) {
-      return Scaffold(body: _Error(error: goalsAv.error.toString()));
+      return Center(child: _Error(error: goalsAv.error.toString()));
     }
 
     final profile = profileAv.requireValue;
     final goals = goalsAv.requireValue;
 
     final l10n = AppLocalizations.of(context)!;
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.dashboard)),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/goals/create'),
-        child: const Icon(Icons.add),
-      ),
-      body: ResponsiveCenter(
-        padding: const EdgeInsets.all(AppSpacing.grid),
-        maxWidth: 820,
-        child: _DashboardContent(
-          profile: profile,
-          goals: goals.where((g) => g.isActive).toList(growable: false),
-          xpService: xpService,
-          completionsAv: completionsAv,
-          l10n: l10n,
-        ),
+    return ResponsiveCenter(
+      padding: const EdgeInsets.all(AppSpacing.grid),
+      maxWidth: 820,
+      child: _DashboardContent(
+        profile: profile,
+        goals: goals.where((g) => g.isActive).toList(growable: false),
+        xpService: xpService,
+        completionsAv: completionsAv,
+        l10n: l10n,
       ),
     );
   }
@@ -101,62 +94,129 @@ class _DashboardContent extends ConsumerWidget {
       orElse: () => <String>{},
     );
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    final isDesktop = Responsive.isDesktop(context);
+    final spacing = isDesktop ? AppSpacing.lg : AppSpacing.md;
+
+    Widget levelCard = Card(
+      child: Padding(
+        padding: EdgeInsets.all(spacing),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    Text(
-                      l10n.levelLabel(profile.level),
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const Spacer(),
-                    Text(
-                      '${profile.currentXp} / $requiredXp XP',
-                      style: Theme.of(context).textTheme.labelLarge,
-                    ),
-                  ],
+                Text(
+                  l10n.levelLabel(profile.level),
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(999),
-                  child: LinearProgressIndicator(value: progress.clamp(0, 1)),
+                const Spacer(),
+                Text(
+                  '${profile.currentXp} / $requiredXp XP',
+                  style: Theme.of(context).textTheme.labelLarge,
                 ),
-                const SizedBox(height: AppSpacing.md),
-                Row(
-                  children: [
-                    _StatPill(
-                      label: l10n.streak,
-                      value: '${profile.streak}d',
-                      icon: Icons.local_fire_department_outlined,
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    _StatPill(
-                      label: l10n.totalXp,
-                      value: '${profile.totalXp}',
-                      icon: Icons.auto_awesome_outlined,
-                    ),
-                  ],
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: LinearProgressIndicator(value: progress.clamp(0, 1)),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              children: [
+                _StatPill(
+                  label: l10n.streak,
+                  value: '${profile.streak}d',
+                  icon: Icons.local_fire_department_outlined,
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                _StatPill(
+                  label: l10n.totalXp,
+                  value: '${profile.totalXp}',
+                  icon: Icons.auto_awesome_outlined,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (isDesktop) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 4,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  levelCard,
+                  SizedBox(height: spacing),
+                  _ActiveChallengeSection(),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(width: spacing),
+          Expanded(
+            flex: 6,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _RecommendedChallengesSection(),
+                      SizedBox(height: spacing),
+                      _RecommendedGoalsSection(),
+                      SizedBox(height: spacing),
+                      _StartChallengeCta(),
+                      SizedBox(height: spacing),
+                      Text(l10n.activeGoals,
+                          style: Theme.of(context).textTheme.titleMedium),
+                      const SizedBox(height: AppSpacing.sm),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: goals.isEmpty
+                      ? const _EmptyGoals()
+                      : ListView.separated(
+                          itemCount: goals.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: AppSpacing.sm),
+                          itemBuilder: (context, index) {
+                            final goal = goals[index];
+                            final doneToday =
+                                completedTodayIds.contains(goal.id);
+                            return _GoalCard(
+                                goal: goal, doneToday: doneToday);
+                          },
+                        ),
                 ),
               ],
             ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        levelCard,
+        SizedBox(height: spacing),
         _ActiveChallengeSection(),
-        const SizedBox(height: AppSpacing.lg),
+        SizedBox(height: spacing),
         _RecommendedChallengesSection(),
-        const SizedBox(height: AppSpacing.lg),
+        SizedBox(height: spacing),
         _RecommendedGoalsSection(),
-        const SizedBox(height: AppSpacing.lg),
+        SizedBox(height: spacing),
         _StartChallengeCta(),
-        const SizedBox(height: AppSpacing.lg),
+        SizedBox(height: spacing),
         Text(l10n.activeGoals, style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: AppSpacing.sm),
         Expanded(

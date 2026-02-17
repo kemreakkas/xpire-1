@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/config/supabase_config.dart';
 import '../../core/ui/app_spacing.dart';
 import '../../core/ui/app_theme.dart';
+import '../../core/ui/responsive.dart';
 import '../../data/models/stats.dart';
 import '../../features/premium/premium_controller.dart';
 import '../../features/premium/premium_page.dart';
@@ -19,97 +20,96 @@ class StatsPage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final statsAv = ref.watch(statsProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.stats)),
-      body: Padding(
-        padding: const EdgeInsets.all(AppSpacing.grid),
-        child: statsAv.when(
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.grid),
+      child: statsAv.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(child: Text(e.toString())),
           data: (stats) {
+            final isDesktop = Responsive.isDesktop(context);
+            final pad = isDesktop ? 24.0 : AppSpacing.md;
+            Widget card(String label, String value) => Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(pad),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          label,
+                          style: Theme.of(context).textTheme.labelLarge,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          value,
+                          style: Theme.of(context).textTheme.headlineMedium,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+            final topCards = [
+              card(l10n.totalXp, '${stats.totalXp}'),
+              card(l10n.goalsCompleted, '${stats.totalGoalsCompleted}'),
+              card(l10n.currentStreak, '${stats.currentStreak} ${l10n.daysSuffix}'),
+              card(l10n.completedToday, '${stats.completedTodayCount}'),
+            ];
+            if (isDesktop) {
+              return SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 8),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  topCards[0],
+                                  const SizedBox(height: AppSpacing.sm),
+                                  topCards[1],
+                                  const SizedBox(height: AppSpacing.lg),
+                                  _ActiveChallengeIndicator(),
+                                  const SizedBox(height: AppSpacing.sm),
+                                  _CompletedChallengesCard(),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.lg),
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  topCards[2],
+                                  const SizedBox(height: AppSpacing.sm),
+                                  topCards[3],
+                                  const SizedBox(height: AppSpacing.lg),
+                                  _CompletionsByCategorySection(
+                                    byCategory: stats.completionsByCategory,
+                                    l10n: l10n,
+                                  ),
+                                  const SizedBox(height: AppSpacing.sm),
+                                  _AdvancedStatsSection(stats: stats, l10n: l10n),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              );
+            }
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.totalXp,
-                          style: Theme.of(context).textTheme.labelLarge,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${stats.totalXp}',
-                          style: Theme.of(context).textTheme.headlineMedium,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.goalsCompleted,
-                          style: Theme.of(context).textTheme.labelLarge,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${stats.totalGoalsCompleted}',
-                          style: Theme.of(context).textTheme.headlineMedium,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.currentStreak,
-                          style: Theme.of(context).textTheme.labelLarge,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${stats.currentStreak} ${l10n.daysSuffix}',
-                          style: Theme.of(context).textTheme.headlineMedium,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.completedToday,
-                          style: Theme.of(context).textTheme.labelLarge,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${stats.completedTodayCount}',
-                          style: Theme.of(context).textTheme.headlineMedium,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
+                ...topCards.map((c) => Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                      child: c,
+                    )),
                 _ActiveChallengeIndicator(),
                 const SizedBox(height: AppSpacing.sm),
                 _CompletedChallengesCard(),
@@ -124,7 +124,6 @@ class StatsPage extends ConsumerWidget {
             );
           },
         ),
-      ),
     );
   }
 }
