@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../core/config/supabase_config.dart';
 import '../../core/ui/app_spacing.dart';
 import '../../core/ui/app_theme.dart';
-import '../../features/auth/auth_controller.dart';
-import '../../state/providers.dart';
+import '../../l10n/app_localizations.dart';
+import 'auth_controller.dart';
+import 'auth_errors.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -36,30 +36,36 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       _loading = true;
     });
     try {
-      await ref.read(authControllerProvider).signInWithPassword(
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
+      await ref.read(authControllerProvider).login(
+            _emailController.text.trim(),
+            _passwordController.text,
           );
       if (!mounted) return;
-      context.go('/dashboard');
+      setState(() => _loading = false);
+      // AuthGate will rebuild and show the app; no navigation needed.
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = e.toString().replaceFirst('Exception: ', '');
+        _error = authErrorMessage(e, AppLocalizations.of(context));
       });
     }
   }
 
+  void _goToRegister() {
+    Navigator.of(context).pushNamed('/register');
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (!SupabaseConfig.isConfigured) {
       return Scaffold(
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.grid),
             child: Text(
-              'Supabase is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY.',
+              l10n.supabaseNotConfigured,
               textAlign: TextAlign.center,
             ),
           ),
@@ -68,6 +74,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
 
     return Scaffold(
+      appBar: AppBar(
+        title: Text(l10n.signIn),
+        centerTitle: true,
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -81,7 +91,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'Xpire',
+                      l10n.appTitle,
                       style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -92,14 +102,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       autocorrect: false,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        hintText: 'you@example.com',
+                      decoration: InputDecoration(
+                        labelText: l10n.email,
+                        hintText: l10n.emailHint,
                       ),
                       validator: (v) {
                         final s = (v ?? '').trim();
-                        if (s.isEmpty) return 'Enter your email';
-                        if (!s.contains('@')) return 'Enter a valid email';
+                        if (s.isEmpty) return l10n.enterEmail;
+                        if (!s.contains('@')) return l10n.enterValidEmail;
                         return null;
                       },
                     ),
@@ -107,9 +117,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     TextFormField(
                       controller: _passwordController,
                       obscureText: true,
-                      decoration: const InputDecoration(labelText: 'Password'),
+                      decoration: InputDecoration(labelText: l10n.password),
                       validator: (v) {
-                        if ((v ?? '').isEmpty) return 'Enter your password';
+                        if ((v ?? '').isEmpty) return l10n.enterPassword;
                         return null;
                       },
                     ),
@@ -136,12 +146,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               width: 24,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('Sign in'),
+                          : Text(l10n.signIn),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     TextButton(
-                      onPressed: () => context.push('/register'),
-                      child: const Text('Create account'),
+                      onPressed: _goToRegister,
+                      child: Text(l10n.createAccount),
                     ),
                   ],
                 ),

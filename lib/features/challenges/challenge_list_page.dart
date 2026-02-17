@@ -6,6 +6,7 @@ import '../../core/ui/app_spacing.dart';
 import '../../core/ui/app_theme.dart';
 import '../../data/models/challenge.dart';
 import '../../features/premium/premium_controller.dart';
+import '../../l10n/app_localizations.dart';
 import '../../state/providers.dart';
 
 class ChallengeListPage extends ConsumerWidget {
@@ -13,17 +14,18 @@ class ChallengeListPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final content = ref.watch(contentRepositoryProvider);
     final challenges = content.getChallenges();
     final isPremium = ref.watch(PremiumController.isPremiumProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Challenges')),
+      appBar: AppBar(title: Text(l10n.challenges)),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.grid),
         children: [
           Text(
-            'Build habits with structured challenges. Complete all goals to earn bonus XP.',
+            l10n.challengesIntro,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -33,6 +35,7 @@ class ChallengeListPage extends ConsumerWidget {
               child: _ChallengeCard(
                 challenge: c,
                 isLocked: c.isPremium && !isPremium,
+                l10n: l10n,
                 onTap: () => context.push('/challenges/${c.id}'),
               ),
             ),
@@ -47,11 +50,13 @@ class _ChallengeCard extends StatelessWidget {
   const _ChallengeCard({
     required this.challenge,
     required this.isLocked,
+    required this.l10n,
     required this.onTap,
   });
 
   final Challenge challenge;
   final bool isLocked;
+  final AppLocalizations l10n;
   final VoidCallback onTap;
 
   @override
@@ -91,7 +96,7 @@ class _ChallengeCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${challenge.durationDays} days · ${challenge.bonusXp} bonus XP',
+                      l10n.daysBonusXp(challenge.durationDays, challenge.bonusXp),
                       style: Theme.of(context).textTheme.labelSmall,
                     ),
                   ],

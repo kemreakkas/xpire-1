@@ -18,6 +18,7 @@ import '../features/premium/premium_page.dart';
 import '../features/profile/profile_page.dart';
 import '../features/stats/stats_page.dart';
 import '../core/utils/date_only.dart';
+import '../l10n/app_localizations.dart';
 import '../data/content/content_repository.dart';
 import '../data/models/active_challenge.dart';
 import '../data/models/challenge.dart';
@@ -310,8 +311,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   final isAuth = ref.watch(isAuthenticatedProvider);
   final hasConfig = SupabaseConfig.isConfigured;
 
+  // When used from AuthGate we are always authenticated; start at dashboard.
   return GoRouter(
-    initialLocation: hasConfig ? '/login' : '/dashboard',
+    initialLocation: '/dashboard',
     redirect: (context, state) {
       final path = state.matchedLocation;
       final onAuthScreen = path == '/login' || path == '/register';
@@ -389,11 +391,12 @@ class _RouterErrorPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Something went wrong')),
+      appBar: AppBar(title: Text(l10n.somethingWentWrong)),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Text(error?.toString() ?? 'Unknown routing error'),
+        child: Text(error?.toString() ?? l10n.unknownRoutingError),
       ),
     );
   }

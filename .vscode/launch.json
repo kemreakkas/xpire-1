@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Xpire (Supabase)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "args": [
+        "--dart-define=SUPABASE_URL=https://akczkqtiierfhyfkjpcp.supabase.co",
+        "--dart-define=SUPABASE_ANON_KEY=sb_publishable_04UYVdsp66LjjEDulB68YA_iJRaJCaU"
+      ]
+    },
+    {
+      "name": "Xpire (no Supabase)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart"
+    }
+  ]
+}

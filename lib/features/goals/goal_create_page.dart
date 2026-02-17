@@ -8,8 +8,7 @@ import '../../core/ui/app_spacing.dart';
 import '../../core/ui/app_theme.dart';
 import '../../data/models/goal.dart';
 import '../../data/models/goal_template.dart';
-import '../../features/premium/premium_controller.dart';
-import '../../features/premium/premium_page.dart';
+import '../../l10n/app_localizations.dart';
 import '../../state/providers.dart';
 
 class GoalCreatePage extends ConsumerStatefulWidget {
@@ -46,6 +45,7 @@ class _GoalCreatePageState extends ConsumerState<GoalCreatePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final pendingId = ref.watch(pendingTemplateIdProvider);
     if (pendingId != null && !_pendingTemplateApplied) {
       _pendingTemplateApplied = true;
@@ -65,11 +65,11 @@ class _GoalCreatePageState extends ConsumerState<GoalCreatePage> {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('New goal'),
-          bottom: const TabBar(
+          title: Text(l10n.newGoal),
+          bottom: TabBar(
             tabs: [
-              Tab(text: 'Create Custom'),
-              Tab(text: 'Use Template'),
+              Tab(text: l10n.createCustom),
+              Tab(text: l10n.useTemplate),
             ],
           ),
         ),
@@ -81,12 +81,14 @@ class _GoalCreatePageState extends ConsumerState<GoalCreatePage> {
               category: _category,
               difficulty: _difficulty,
               selectedTemplate: _selectedTemplate,
+              l10n: l10n,
               onCategoryChanged: (v) => setState(() => _category = v),
               onDifficultyChanged: (v) => setState(() => _difficulty = v),
               onSave: _saveGoal,
             ),
             _TemplateTab(
               categoryFilter: _templateCategoryFilter,
+              l10n: l10n,
               onCategoryFilterChanged: (v) =>
                   setState(() => _templateCategoryFilter = v),
               onTemplateTap: _applyTemplate,
@@ -99,32 +101,6 @@ class _GoalCreatePageState extends ConsumerState<GoalCreatePage> {
 
   Future<void> _saveGoal() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-
-    final canCreate = ref.read(PremiumController.canCreateGoalProvider);
-    if (!canCreate) {
-      if (!context.mounted) return;
-      await showDialog<void>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Goal limit'),
-          content: const Text('Upgrade to Premium to create unlimited goals.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                context.push(PremiumPage.routePath);
-              },
-              child: const Text('Upgrade'),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
 
     final xpService = ref.read(xpServiceProvider);
     final title = _titleController.text.trim();
@@ -160,6 +136,7 @@ class _CustomFormTab extends StatelessWidget {
     required this.category,
     required this.difficulty,
     required this.selectedTemplate,
+    required this.l10n,
     required this.onCategoryChanged,
     required this.onDifficultyChanged,
     required this.onSave,
@@ -170,6 +147,7 @@ class _CustomFormTab extends StatelessWidget {
   final GoalCategory category;
   final GoalDifficulty difficulty;
   final GoalTemplate? selectedTemplate;
+  final AppLocalizations l10n;
   final ValueChanged<GoalCategory> onCategoryChanged;
   final ValueChanged<GoalDifficulty> onDifficultyChanged;
   final VoidCallback onSave;
@@ -196,7 +174,7 @@ class _CustomFormTab extends StatelessWidget {
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Text(
-                          'From template: ${selectedTemplate!.title}',
+                          l10n.fromTemplate(selectedTemplate!.title),
                           style: Theme.of(context).textTheme.labelMedium,
                         ),
                       ),
@@ -208,23 +186,23 @@ class _CustomFormTab extends StatelessWidget {
             TextFormField(
               controller: titleController,
               textInputAction: TextInputAction.done,
-              decoration: const InputDecoration(labelText: 'Title'),
+              decoration: InputDecoration(labelText: l10n.title),
               validator: (v) {
                 final value = (v ?? '').trim();
-                if (value.isEmpty) return 'Enter a title';
-                if (value.length < 3) return 'Keep it a bit longer';
+                if (value.isEmpty) return l10n.enterTitle;
+                if (value.length < 3) return l10n.keepLonger;
                 return null;
               },
             ),
             const SizedBox(height: AppSpacing.md),
             DropdownButtonFormField<GoalCategory>(
               value: category,
-              decoration: const InputDecoration(labelText: 'Category'),
+              decoration: InputDecoration(labelText: l10n.category),
               items: GoalCategory.values
                   .map(
                     (c) => DropdownMenuItem(
                       value: c,
-                      child: Text(_categoryLabel(c)),
+                      child: Text(_categoryLabel(l10n, c)),
                     ),
                   )
                   .toList(growable: false),
@@ -233,12 +211,12 @@ class _CustomFormTab extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             DropdownButtonFormField<GoalDifficulty>(
               value: difficulty,
-              decoration: const InputDecoration(labelText: 'Difficulty'),
+              decoration: InputDecoration(labelText: l10n.difficulty),
               items: GoalDifficulty.values
                   .map(
                     (d) => DropdownMenuItem(
                       value: d,
-                      child: Text(_difficultyLabel(d)),
+                      child: Text(_difficultyLabel(l10n, d)),
                     ),
                   )
                   .toList(growable: false),
@@ -247,7 +225,7 @@ class _CustomFormTab extends StatelessWidget {
             const Spacer(),
             SizedBox(
               height: 52,
-              child: FilledButton(onPressed: onSave, child: const Text('Save')),
+              child: FilledButton(onPressed: onSave, child: Text(l10n.save)),
             ),
           ],
         ),
@@ -259,11 +237,13 @@ class _CustomFormTab extends StatelessWidget {
 class _TemplateTab extends ConsumerWidget {
   const _TemplateTab({
     required this.categoryFilter,
+    required this.l10n,
     required this.onCategoryFilterChanged,
     required this.onTemplateTap,
   });
 
   final GoalCategory? categoryFilter;
+  final AppLocalizations l10n;
   final ValueChanged<GoalCategory?> onCategoryFilterChanged;
   final ValueChanged<GoalTemplate> onTemplateTap;
 
@@ -273,7 +253,6 @@ class _TemplateTab extends ConsumerWidget {
     final templates = categoryFilter == null
         ? content.getTemplates()
         : content.getTemplatesByCategory(categoryFilter);
-    final isPremium = ref.watch(PremiumController.isPremiumProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -282,15 +261,15 @@ class _TemplateTab extends ConsumerWidget {
           padding: const EdgeInsets.all(AppSpacing.grid),
           child: DropdownButtonFormField<GoalCategory?>(
             value: categoryFilter,
-            decoration: const InputDecoration(labelText: 'Category'),
+            decoration: InputDecoration(labelText: l10n.category),
             items: [
-              const DropdownMenuItem<GoalCategory?>(
+              DropdownMenuItem<GoalCategory?>(
                 value: null,
-                child: Text('All'),
+                child: Text(l10n.all),
               ),
               ...GoalCategory.values.map(
-                (c) =>
-                    DropdownMenuItem(value: c, child: Text(_categoryLabel(c))),
+                (c) => DropdownMenuItem(
+                    value: c, child: Text(_categoryLabel(l10n, c))),
               ),
             ],
             onChanged: onCategoryFilterChanged,
@@ -302,19 +281,14 @@ class _TemplateTab extends ConsumerWidget {
             itemCount: templates.length,
             itemBuilder: (context, index) {
               final t = templates[index];
-              final locked = t.isPremium && !isPremium;
               return Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                 child: _TemplateCard(
                   template: t,
-                  isLocked: locked,
+                  l10n: l10n,
                   onTap: () {
-                    if (locked) {
-                      context.push(PremiumPage.routePath);
-                    } else {
-                      onTemplateTap(t);
-                      DefaultTabController.of(context).animateTo(0);
-                    }
+                    onTemplateTap(t);
+                    DefaultTabController.of(context).animateTo(0);
                   },
                 ),
               );
@@ -329,12 +303,12 @@ class _TemplateTab extends ConsumerWidget {
 class _TemplateCard extends StatelessWidget {
   const _TemplateCard({
     required this.template,
-    required this.isLocked,
+    required this.l10n,
     required this.onTap,
   });
 
   final GoalTemplate template;
-  final bool isLocked;
+  final AppLocalizations l10n;
   final VoidCallback onTap;
 
   @override
@@ -343,62 +317,48 @@ class _TemplateCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
-        child: Stack(
-          children: [
-            Opacity(
-              opacity: isLocked ? 0.6 : 1,
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            template.title,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                        ),
-                        if (isLocked)
-                          Icon(
-                            Icons.lock_outline,
-                            size: 20,
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
-                        if (!isLocked)
-                          Text(
-                            '${template.baseXp} XP',
-                            style: Theme.of(context).textTheme.labelLarge,
-                          ),
-                      ],
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      template.title,
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      template.description,
-                      style: Theme.of(context).textTheme.bodySmall,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
-                      children: [
-                        _Chip(text: _categoryLabel(template.category)),
-                        _Chip(text: _difficultyLabel(template.difficulty)),
-                        _Chip(
-                          text: template.frequency == TemplateFrequency.daily
-                              ? 'Daily'
-                              : 'Weekly',
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                  ),
+                  Text(
+                    '${template.baseXp} XP',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                template.description,
+                style: Theme.of(context).textTheme.bodySmall,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 4),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  _Chip(text: _categoryLabel(l10n, template.category)),
+                  _Chip(text: _difficultyLabel(l10n, template.difficulty)),
+                  _Chip(
+                    text: template.frequency == TemplateFrequency.daily
+                        ? l10n.daily
+                        : l10n.weekly,
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -423,24 +383,24 @@ class _Chip extends StatelessWidget {
   }
 }
 
-String _categoryLabel(GoalCategory c) {
+String _categoryLabel(AppLocalizations l10n, GoalCategory c) {
   return switch (c) {
-    GoalCategory.fitness => 'Fitness',
-    GoalCategory.study => 'Study',
-    GoalCategory.work => 'Work',
-    GoalCategory.focus => 'Focus',
-    GoalCategory.mind => 'Mind',
-    GoalCategory.health => 'Health',
-    GoalCategory.finance => 'Finance',
-    GoalCategory.selfGrowth => 'Self Growth',
-    GoalCategory.general => 'General',
+    GoalCategory.fitness => l10n.fitness,
+    GoalCategory.study => l10n.study,
+    GoalCategory.work => l10n.work,
+    GoalCategory.focus => l10n.focus,
+    GoalCategory.mind => l10n.mind,
+    GoalCategory.health => l10n.health,
+    GoalCategory.finance => l10n.finance,
+    GoalCategory.selfGrowth => l10n.selfGrowth,
+    GoalCategory.general => l10n.general,
   };
 }
 
-String _difficultyLabel(GoalDifficulty d) {
+String _difficultyLabel(AppLocalizations l10n, GoalDifficulty d) {
   return switch (d) {
-    GoalDifficulty.easy => 'Easy (10 XP)',
-    GoalDifficulty.medium => 'Medium (25 XP)',
-    GoalDifficulty.hard => 'Hard (50 XP)',
+    GoalDifficulty.easy => l10n.easyXp,
+    GoalDifficulty.medium => l10n.mediumXp,
+    GoalDifficulty.hard => l10n.hardXp,
   };
 }

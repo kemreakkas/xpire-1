@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../core/config/supabase_config.dart';
 import '../../core/services/analytics_service.dart';
 import '../../core/ui/app_spacing.dart';
 import '../../core/ui/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../state/providers.dart';
 import 'auth_controller.dart';
+import 'auth_errors.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
@@ -39,33 +40,37 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       _loading = true;
     });
     try {
-      await ref
-          .read(authControllerProvider)
-          .signUp(
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
+      await ref.read(authControllerProvider).register(
+            _emailController.text.trim(),
+            _passwordController.text,
           );
       ref.read(analyticsServiceProvider).track(AnalyticsEvents.userRegistered);
       if (!mounted) return;
-      context.go('/dashboard');
+      setState(() => _loading = false);
+      // AuthGate will rebuild and show the app; no navigation needed.
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = e.toString().replaceFirst('Exception: ', '');
+        _error = authErrorMessage(e, AppLocalizations.of(context));
       });
     }
   }
 
+  void _goToLogin() {
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (!SupabaseConfig.isConfigured) {
       return Scaffold(
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.grid),
             child: Text(
-              'Supabase is not configured.',
+              l10n.supabaseNotConfigured,
               textAlign: TextAlign.center,
             ),
           ),
@@ -74,7 +79,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Create account')),
+      appBar: AppBar(title: Text(l10n.createAccount)),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -91,14 +96,14 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       autocorrect: false,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        hintText: 'you@example.com',
+                      decoration: InputDecoration(
+                        labelText: l10n.email,
+                        hintText: l10n.emailHint,
                       ),
                       validator: (v) {
                         final s = (v ?? '').trim();
-                        if (s.isEmpty) return 'Enter your email';
-                        if (!s.contains('@')) return 'Enter a valid email';
+                        if (s.isEmpty) return l10n.enterEmail;
+                        if (!s.contains('@')) return l10n.enterValidEmail;
                         return null;
                       },
                     ),
@@ -106,13 +111,13 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     TextFormField(
                       controller: _passwordController,
                       obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Password',
-                        hintText: 'Min 6 characters',
+                      decoration: InputDecoration(
+                        labelText: l10n.password,
+                        hintText: l10n.min6Chars,
                       ),
                       validator: (v) {
                         final s = v ?? '';
-                        if (s.length < 6) return 'At least 6 characters';
+                        if (s.length < 6) return l10n.atLeast6Chars;
                         return null;
                       },
                     ),
@@ -120,12 +125,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     TextFormField(
                       controller: _confirmController,
                       obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Confirm password',
+                      decoration: InputDecoration(
+                        labelText: l10n.confirmPassword,
                       ),
                       validator: (v) {
                         if (v != _passwordController.text) {
-                          return 'Passwords do not match';
+                          return l10n.passwordsDoNotMatch;
                         }
                         return null;
                       },
@@ -153,12 +158,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                               width: 24,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('Create account'),
+                          : Text(l10n.createAccount),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     TextButton(
-                      onPressed: () => context.pop(),
-                      child: const Text('Already have an account? Sign in'),
+                      onPressed: _goToLogin,
+                      child: Text(l10n.alreadyHaveAccount),
                     ),
                   ],
                 ),

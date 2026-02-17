@@ -13,6 +13,7 @@ import '../../data/models/challenge.dart';
 import '../../data/models/goal.dart';
 import '../../data/models/goal_template.dart';
 import '../../features/auth/auth_controller.dart';
+import '../../l10n/app_localizations.dart';
 import '../../state/providers.dart';
 
 class ChallengeDetailPage extends ConsumerWidget {
@@ -22,6 +23,7 @@ class ChallengeDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final content = ref.watch(contentRepositoryProvider);
     final challenge = content.getChallengeById(challengeId);
     final progressRepo = ref.watch(challengeProgressRepositoryProvider);
@@ -41,8 +43,8 @@ class ChallengeDetailPage extends ConsumerWidget {
 
     if (challenge == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Challenge')),
-        body: const Center(child: Text('Challenge not found')),
+        appBar: AppBar(title: Text(l10n.challenges)),
+        body: Center(child: Text(l10n.challengeNotFound)),
       );
     }
 
@@ -66,9 +68,9 @@ class ChallengeDetailPage extends ConsumerWidget {
                     const SizedBox(height: AppSpacing.md),
                     Row(
                       children: [
-                        _Chip(label: '${challenge.durationDays} days'),
+                        _Chip(label: l10n.daysCount(challenge.durationDays)),
                         const SizedBox(width: AppSpacing.sm),
-                        _Chip(label: '${challenge.bonusXp} bonus XP'),
+                        _Chip(label: l10n.bonusXpLabel(challenge.bonusXp)),
                       ],
                     ),
                   ],
@@ -76,7 +78,7 @@ class ChallengeDetailPage extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            Text('Goals in this challenge',
+            Text(l10n.goalsInThisChallenge,
                 style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: AppSpacing.sm),
             _GoalListFromTemplates(
@@ -94,11 +96,11 @@ class ChallengeDetailPage extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Challenge completed!',
+                              l10n.challengeCompleted,
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             Text(
-                              '+${challenge.bonusXp} XP was added when you finished.',
+                              l10n.bonusXpAddedWhenFinished(challenge.bonusXp),
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ],
@@ -107,6 +109,7 @@ class ChallengeDetailPage extends ConsumerWidget {
                     )
                   : _ClaimBonusSection(
                       challenge: challenge,
+                      l10n: l10n,
                       onClaim: () => _claimBonus(context, ref, challenge),
                     )
             else if (isActive)
@@ -115,7 +118,7 @@ class ChallengeDetailPage extends ConsumerWidget {
                 children: [
                   if (progressState != null) ...[
                     Text(
-                      'Progress: ${(progressState.progress * 100).toStringAsFixed(0)}%',
+                      l10n.progressPercent((progressState.progress * 100).toStringAsFixed(0)),
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
                     const SizedBox(height: AppSpacing.sm),
@@ -132,7 +135,7 @@ class ChallengeDetailPage extends ConsumerWidget {
                               color: Theme.of(context).colorScheme.primary),
                           const SizedBox(width: AppSpacing.sm),
                           Text(
-                            'You are doing this challenge',
+                            l10n.youAreDoingThisChallenge,
                             style: Theme.of(context).textTheme.titleSmall,
                           ),
                         ],
@@ -147,7 +150,7 @@ class ChallengeDetailPage extends ConsumerWidget {
                 style: FilledButton.styleFrom(
                     backgroundColor: AppTheme.accent,
                     padding: const EdgeInsets.symmetric(vertical: 16)),
-                child: const Text('Start challenge'),
+                child: Text(l10n.startChallenge),
               ),
           ],
         ),
@@ -168,8 +171,9 @@ class ChallengeDetailPage extends ConsumerWidget {
       final progress = await engine.startChallenge(userId: uid, challenge: challenge);
       if (progress == null) {
         if (!context.mounted) return;
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('You already have an active challenge.')),
+          SnackBar(content: Text(l10n.alreadyHaveActiveChallenge)),
         );
         return;
       }
@@ -181,8 +185,9 @@ class ChallengeDetailPage extends ConsumerWidget {
             {'challenge_id': challenge.id, 'duration_days': challenge.durationDays},
           );
       if (!context.mounted) return;
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${challenge.title} started! Complete 1 goal per day to earn ${challenge.bonusXp} bonus XP.')),
+        SnackBar(content: Text(l10n.challengeStartedMessage(challenge.title, challenge.bonusXp))),
       );
       context.pop();
       context.push('/dashboard');
@@ -228,8 +233,9 @@ class ChallengeDetailPage extends ConsumerWidget {
         );
 
     if (!context.mounted) return;
+    final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${challenge.title} started! Complete goals to earn ${challenge.bonusXp} bonus XP.')),
+      SnackBar(content: Text(l10n.challengeStartedMessageOffline(challenge.title, challenge.bonusXp))),
     );
     context.pop();
     context.push('/dashboard');
@@ -254,8 +260,9 @@ class ChallengeDetailPage extends ConsumerWidget {
     ref.invalidate(profileControllerProvider);
     ref.invalidate(activeChallengeProgressProvider);
     if (!context.mounted) return;
+    final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('+${challenge.bonusXp} bonus XP claimed!')),
+      SnackBar(content: Text(l10n.bonusXpClaimed(challenge.bonusXp))),
     );
     context.pop();
     context.push('/dashboard');
@@ -316,10 +323,12 @@ class _GoalListFromTemplates extends StatelessWidget {
 class _ClaimBonusSection extends StatelessWidget {
   const _ClaimBonusSection({
     required this.challenge,
+    required this.l10n,
     required this.onClaim,
   });
 
   final Challenge challenge;
+  final AppLocalizations l10n;
   final VoidCallback onClaim;
 
   @override
@@ -337,14 +346,14 @@ class _ClaimBonusSection extends StatelessWidget {
                     color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: AppSpacing.sm),
                 Text(
-                  'Challenge complete!',
+                  l10n.challengeCompleted,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Claim ${challenge.bonusXp} bonus XP',
+              l10n.claimBonusXp(challenge.bonusXp),
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: AppSpacing.md),
@@ -353,7 +362,7 @@ class _ClaimBonusSection extends StatelessWidget {
               style: FilledButton.styleFrom(
                   backgroundColor: AppTheme.accent,
                   padding: const EdgeInsets.symmetric(vertical: 16)),
-              child: const Text('Claim bonus'),
+              child: Text(l10n.claimBonus),
             ),
           ],
         ),

@@ -7,8 +7,9 @@ import '../../../core/config/app_env.dart';
 import '../../../core/constants/premium_constants.dart';
 import '../../../core/services/analytics_service.dart';
 import '../../../core/ui/app_spacing.dart';
-import '../../../state/providers.dart';
 import '../../../core/ui/app_theme.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../state/providers.dart';
 import 'premium_controller.dart';
 import 'premium_service.dart';
 
@@ -26,6 +27,7 @@ class _PremiumPageState extends ConsumerState<PremiumPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isPremium = ref.watch(PremiumController.isPremiumProvider);
     if (_purchasePending && isPremium && mounted) {
       _purchasePending = false;
@@ -34,7 +36,7 @@ class _PremiumPageState extends ConsumerState<PremiumPage> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         messenger.showSnackBar(
-          const SnackBar(content: Text('Premium activated')),
+          SnackBar(content: Text(l10n.premiumActivated)),
         );
         navigator.pop();
       });
@@ -45,7 +47,7 @@ class _PremiumPageState extends ConsumerState<PremiumPage> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Premium', style: TextStyle(color: Colors.white)),
+        title: Text(l10n.premiumPageTitle, style: const TextStyle(color: Colors.white)),
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -57,14 +59,14 @@ class _PremiumPageState extends ConsumerState<PremiumPage> {
           children: [
             const SizedBox(height: AppSpacing.md),
             Text(
-              'Unlock your full potential',
+              l10n.unlockPotential,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            _BenefitsList(),
+            _BenefitsList(l10n: l10n),
             const SizedBox(height: AppSpacing.xl),
             if (isPremium)
               Card(
@@ -76,7 +78,7 @@ class _PremiumPageState extends ConsumerState<PremiumPage> {
                       Icon(Icons.verified, color: AppTheme.accent),
                       const SizedBox(width: AppSpacing.sm),
                       Text(
-                        'You have Premium',
+                        l10n.youHavePremium,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               color: Colors.white,
                             ),
@@ -94,7 +96,7 @@ class _PremiumPageState extends ConsumerState<PremiumPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Premium purchases available on mobile only.',
+                        l10n.premiumPurchasesMobileOnly,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                               color: Colors.white70,
                             ),
@@ -107,15 +109,15 @@ class _PremiumPageState extends ConsumerState<PremiumPage> {
                             await service.setPremiumForTesting(true);
                             if (mounted) {
                               messenger.showSnackBar(
-                                const SnackBar(
-                                    content: Text('Dev: Premium enabled')),
+                                SnackBar(
+                                    content: Text(l10n.devPremiumEnabled)),
                               );
                             }
                           },
                           style: FilledButton.styleFrom(
                             backgroundColor: AppTheme.accent,
                           ),
-                          child: const Text('Dev: Enable Premium'),
+                          child: Text(l10n.devEnablePremium),
                         ),
                     ],
                   ),
@@ -132,7 +134,7 @@ class _PremiumPageState extends ConsumerState<PremiumPage> {
               else ...[
                 _PriceRow(
                   productId: PremiumConstants.premiumMonthly,
-                  label: 'Monthly',
+                  label: l10n.monthly,
                   pricePlaceholder: '—',
                   service: service,
                   onPurchaseStarted: () => setState(() => _purchasePending = true),
@@ -144,7 +146,7 @@ class _PremiumPageState extends ConsumerState<PremiumPage> {
                 const SizedBox(height: AppSpacing.sm),
                 _PriceRow(
                   productId: PremiumConstants.premiumYearly,
-                  label: 'Yearly',
+                  label: l10n.yearly,
                   pricePlaceholder: '—',
                   service: service,
                   onPurchaseStarted: () => setState(() => _purchasePending = true),
@@ -161,8 +163,8 @@ class _PremiumPageState extends ConsumerState<PremiumPage> {
                           await service.restorePurchases();
                           if (mounted) {
                             messenger.showSnackBar(
-                              const SnackBar(
-                                  content: Text('Restore requested')),
+                              SnackBar(
+                                  content: Text(l10n.restoreRequested)),
                             );
                           }
                         }
@@ -171,7 +173,7 @@ class _PremiumPageState extends ConsumerState<PremiumPage> {
                     foregroundColor: Colors.white,
                     side: const BorderSide(color: Colors.white54),
                   ),
-                  child: const Text('Restore purchases'),
+                  child: Text(l10n.restorePurchases),
                 ),
               ],
             ],
@@ -184,13 +186,12 @@ class _PremiumPageState extends ConsumerState<PremiumPage> {
 }
 
 class _BenefitsList extends StatelessWidget {
+  const _BenefitsList({required this.l10n});
+
+  final AppLocalizations l10n;
+
   @override
   Widget build(BuildContext context) {
-    const items = [
-      ('Unlimited Goals', Icons.flag),
-      ('Advanced Stats', Icons.insights),
-      ('Streak Protection', Icons.ac_unit),
-    ];
     return Card(
       color: const Color(0xFF141414),
       child: Padding(
@@ -199,28 +200,56 @@ class _BenefitsList extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Benefits',
+              l10n.benefits,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
                   ),
             ),
             const SizedBox(height: AppSpacing.sm),
-            ...items.map(
-              (e) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Row(
-                  children: [
-                    Icon(e.$2, color: AppTheme.accent, size: 22),
-                    const SizedBox(width: AppSpacing.sm),
-                    Text(
-                      e.$1,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: Colors.white,
-                          ),
-                    ),
-                  ],
-                ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                children: [
+                  Icon(Icons.flag, color: AppTheme.accent, size: 22),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(
+                    l10n.unlimitedGoals,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Colors.white,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                children: [
+                  Icon(Icons.insights, color: AppTheme.accent, size: 22),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(
+                    l10n.advancedStats,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Colors.white,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                children: [
+                  Icon(Icons.ac_unit, color: AppTheme.accent, size: 22),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(
+                    l10n.streakProtection,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Colors.white,
+                        ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -278,7 +307,7 @@ class _PriceRow extends StatelessWidget {
             }
           },
           style: FilledButton.styleFrom(backgroundColor: AppTheme.accent),
-          child: const Text('Buy'),
+          child: Text(AppLocalizations.of(context)!.buy),
         ),
       ),
     );

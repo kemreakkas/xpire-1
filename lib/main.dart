@@ -7,8 +7,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'app/app.dart';
-import 'core/config/supabase_config.dart';
+import 'core/config/env.dart';
+import 'features/auth/auth_gate.dart';
 import 'core/log/app_log.dart';
 import 'data/models/active_challenge.dart';
 import 'data/models/goal.dart';
@@ -17,23 +17,25 @@ import 'data/models/user_profile.dart';
 import 'state/providers.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  FlutterError.onError = (details) {
-    FlutterError.presentError(details);
-    AppLog.error('FlutterError', details.exception, details.stack);
-  };
-
   runZonedGuarded(
     () async {
+      // Same zone as runApp to avoid "Zone mismatch" (bindings vs runApp).
+      WidgetsFlutterBinding.ensureInitialized();
+
+      FlutterError.onError = (details) {
+        FlutterError.presentError(details);
+        AppLog.error('FlutterError', details.exception, details.stack);
+      };
+
       if (kIsWeb) {
         usePathUrlStrategy();
       }
 
-      if (SupabaseConfig.isConfigured) {
+      // Do NOT hardcode keys. Set via --dart-define or Vercel env.
+      if (supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty) {
         await Supabase.initialize(
-          url: SupabaseConfig.url,
-          anonKey: SupabaseConfig.anonKey,
+          url: supabaseUrl,
+          anonKey: supabaseAnonKey,
         );
       }
 
@@ -66,7 +68,7 @@ Future<void> main() async {
             completionsBoxProvider.overrideWithValue(completionsBox),
             activeChallengeBoxProvider.overrideWithValue(activeChallengeBox),
           ],
-          child: const XpireApp(),
+          child: const AuthGate(),
         ),
       );
     },

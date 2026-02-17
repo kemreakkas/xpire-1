@@ -2,30 +2,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../state/providers.dart';
 
-/// Premium business logic exposed via Riverpod. UI uses these, not raw profile/goals.
+/// Premium business logic. Free users have full core features (unlimited goals, XP, streak, challenges).
+/// Premium only adds: advanced analytics, exclusive challenges, future AI features. No blocking.
 abstract final class PremiumController {
-  static const int maxActiveGoalsFree = 3;
-
   /// Whether the user has an active premium subscription (server subscription_status or local isPremium).
   static final isPremiumProvider = Provider<bool>((ref) {
     final profile = ref.watch(profileControllerProvider).asData?.value;
     return profile?.isPremiumEffective ?? false;
   });
 
-  /// Number of currently active goals.
-  static final activeGoalCountProvider = Provider<int>((ref) {
-    final goals = ref.watch(goalsControllerProvider).asData?.value ?? [];
-    return goals.where((g) => g.isActive).length;
-  });
+  /// Free users can create unlimited goals. No hard limits.
+  static final canCreateGoalProvider = Provider<bool>((ref) => true);
 
-  /// True if user can create a new goal (premium = unlimited, free = max 3 active).
-  static final canCreateGoalProvider = Provider<bool>((ref) {
-    final isPremium = ref.watch(isPremiumProvider);
-    final count = ref.watch(activeGoalCountProvider);
-    return isPremium || count < maxActiveGoalsFree;
-  });
-
-  /// Advanced stats (weekly average, most productive category, 30-day trend) are premium-only.
+  /// Advanced analytics (weekly average, most productive category, 30-day trend) are premium-only.
   static final canUseAdvancedStatsProvider = Provider<bool>((ref) {
     return ref.watch(isPremiumProvider);
   });

@@ -8,6 +8,7 @@ import '../../core/ui/app_theme.dart';
 import '../../data/models/stats.dart';
 import '../../features/premium/premium_controller.dart';
 import '../../features/premium/premium_page.dart';
+import '../../l10n/app_localizations.dart';
 import '../../state/providers.dart';
 
 class StatsPage extends ConsumerWidget {
@@ -15,10 +16,11 @@ class StatsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final statsAv = ref.watch(statsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Stats')),
+      appBar: AppBar(title: Text(l10n.stats)),
       body: Padding(
         padding: const EdgeInsets.all(AppSpacing.grid),
         child: statsAv.when(
@@ -35,7 +37,7 @@ class StatsPage extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Total XP',
+                          l10n.totalXp,
                           style: Theme.of(context).textTheme.labelLarge,
                         ),
                         const SizedBox(height: 4),
@@ -55,7 +57,7 @@ class StatsPage extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Goals completed',
+                          l10n.goalsCompleted,
                           style: Theme.of(context).textTheme.labelLarge,
                         ),
                         const SizedBox(height: 4),
@@ -75,12 +77,12 @@ class StatsPage extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Current streak',
+                          l10n.currentStreak,
                           style: Theme.of(context).textTheme.labelLarge,
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${stats.currentStreak} days',
+                          '${stats.currentStreak} ${l10n.daysSuffix}',
                           style: Theme.of(context).textTheme.headlineMedium,
                         ),
                       ],
@@ -95,7 +97,7 @@ class StatsPage extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Completed today',
+                          l10n.completedToday,
                           style: Theme.of(context).textTheme.labelLarge,
                         ),
                         const SizedBox(height: 4),
@@ -114,9 +116,10 @@ class StatsPage extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.sm),
                 _CompletionsByCategorySection(
                   byCategory: stats.completionsByCategory,
+                  l10n: l10n,
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                _AdvancedStatsSection(stats: stats),
+                _AdvancedStatsSection(stats: stats, l10n: l10n),
               ],
             );
           },
@@ -131,6 +134,7 @@ class _ActiveChallengeIndicator extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     if (!SupabaseConfig.isConfigured) return const SizedBox.shrink();
     final progressAv = ref.watch(activeChallengeProgressModelProvider);
     return progressAv.when(
@@ -157,7 +161,7 @@ class _ActiveChallengeIndicator extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Active challenge',
+                          l10n.activeChallenge,
                           style: Theme.of(context).textTheme.labelSmall,
                         ),
                         Text(
@@ -168,7 +172,7 @@ class _ActiveChallengeIndicator extends ConsumerWidget {
                     ),
                   ),
                   Text(
-                    'Day ${progress.currentDay}/${challenge.durationDays}',
+                    l10n.dayProgress(progress.currentDay, challenge.durationDays),
                     style: Theme.of(context).textTheme.labelLarge,
                   ),
                 ],
@@ -188,6 +192,7 @@ class _CompletedChallengesCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     if (!SupabaseConfig.isConfigured) return const SizedBox.shrink();
     final countAv = ref.watch(completedChallengesCountProvider);
     return countAv.when(
@@ -198,7 +203,7 @@ class _CompletedChallengesCard extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Challenges completed',
+                l10n.challengesCompleted,
                 style: Theme.of(context).textTheme.labelLarge,
               ),
               const SizedBox(height: 4),
@@ -216,17 +221,29 @@ class _CompletedChallengesCard extends ConsumerWidget {
   }
 }
 
-String _categoryDisplayName(String name) {
-  if (name == 'selfGrowth') return 'Self Growth';
-  return name.isEmpty
-      ? 'General'
-      : '${name[0].toUpperCase()}${name.substring(1)}';
+String _categoryDisplayName(AppLocalizations l10n, String name) {
+  return switch (name.toLowerCase()) {
+    'fitness' => l10n.fitness,
+    'study' => l10n.study,
+    'work' => l10n.work,
+    'focus' => l10n.focus,
+    'mind' => l10n.mind,
+    'health' => l10n.health,
+    'finance' => l10n.finance,
+    'selfgrowth' => l10n.selfGrowth,
+    'general' => l10n.general,
+    _ => name.isEmpty ? l10n.general : '${name[0].toUpperCase()}${name.substring(1)}',
+  };
 }
 
 class _CompletionsByCategorySection extends StatelessWidget {
-  const _CompletionsByCategorySection({required this.byCategory});
+  const _CompletionsByCategorySection({
+    required this.byCategory,
+    required this.l10n,
+  });
 
   final Map<String, int> byCategory;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
@@ -240,13 +257,13 @@ class _CompletionsByCategorySection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Completions by category',
+              l10n.completionsByCategory,
               style: Theme.of(context).textTheme.titleSmall,
             ),
             const SizedBox(height: AppSpacing.sm),
             ...entries.map(
               (e) => _StatRow(
-                label: _categoryDisplayName(e.key),
+                label: _categoryDisplayName(l10n, e.key),
                 value: '${e.value}',
               ),
             ),
@@ -258,9 +275,10 @@ class _CompletionsByCategorySection extends StatelessWidget {
 }
 
 class _AdvancedStatsSection extends ConsumerWidget {
-  const _AdvancedStatsSection({required this.stats});
+  const _AdvancedStatsSection({required this.stats, required this.l10n});
 
   final Stats stats;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -274,24 +292,24 @@ class _AdvancedStatsSection extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Advanced stats',
+                l10n.advancedStats,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: AppSpacing.sm),
               _StatRow(
-                label: 'Weekly XP',
+                label: l10n.weeklyXp,
                 value: '${stats.weeklyXpTotal ?? 0}',
               ),
               _StatRow(
-                label: 'Most productive category',
+                label: l10n.mostProductiveCategory,
                 value: stats.mostProductiveCategoryName != null
-                    ? _categoryDisplayName(stats.mostProductiveCategoryName!)
+                    ? _categoryDisplayName(l10n, stats.mostProductiveCategoryName!)
                     : '—',
               ),
               if (stats.last30DaysCompletionCounts != null) ...[
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  'Last 30 days',
+                  l10n.last30Days,
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
                 const SizedBox(height: 4),
@@ -345,12 +363,12 @@ class _AdvancedStatsSection extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Premium Feature',
+              l10n.premiumFeature,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Weekly average, most productive category, 30-day trend',
+              l10n.advancedStatsDesc,
               style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),
@@ -358,7 +376,7 @@ class _AdvancedStatsSection extends ConsumerWidget {
             FilledButton(
               onPressed: () => context.push(PremiumPage.routePath),
               style: FilledButton.styleFrom(backgroundColor: AppTheme.accent),
-              child: const Text('Upgrade'),
+              child: Text(l10n.upgrade),
             ),
           ],
         ),

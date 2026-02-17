@@ -14,6 +14,7 @@ import '../../data/models/goal_complete_result.dart';
 import '../../data/models/goal_completion.dart';
 import '../../data/models/user_profile.dart';
 import '../../data/models/challenge_progress.dart';
+import '../../l10n/app_localizations.dart';
 import '../../state/providers.dart';
 
 bool _hasActiveFromModel(ChallengeProgress? p) =>
@@ -42,8 +43,9 @@ class DashboardPage extends ConsumerWidget {
     final profile = profileAv.requireValue;
     final goals = goalsAv.requireValue;
 
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Xpire')),
+      appBar: AppBar(title: Text(l10n.dashboard)),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/goals/create'),
         child: const Icon(Icons.add),
@@ -56,6 +58,7 @@ class DashboardPage extends ConsumerWidget {
           goals: goals.where((g) => g.isActive).toList(growable: false),
           xpService: xpService,
           completionsAv: completionsAv,
+          l10n: l10n,
         ),
       ),
     );
@@ -68,12 +71,14 @@ class _DashboardContent extends ConsumerWidget {
     required this.goals,
     required this.xpService,
     required this.completionsAv,
+    required this.l10n,
   });
 
   final UserProfile profile;
   final List<Goal> goals;
   final XpService xpService;
   final AsyncValue<List<GoalCompletion>> completionsAv;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -108,7 +113,7 @@ class _DashboardContent extends ConsumerWidget {
                 Row(
                   children: [
                     Text(
-                      'Level ${profile.level}',
+                      l10n.levelLabel(profile.level),
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const Spacer(),
@@ -127,13 +132,13 @@ class _DashboardContent extends ConsumerWidget {
                 Row(
                   children: [
                     _StatPill(
-                      label: 'Streak',
+                      label: l10n.streak,
                       value: '${profile.streak}d',
                       icon: Icons.local_fire_department_outlined,
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     _StatPill(
-                      label: 'Total XP',
+                      label: l10n.totalXp,
                       value: '${profile.totalXp}',
                       icon: Icons.auto_awesome_outlined,
                     ),
@@ -152,7 +157,7 @@ class _DashboardContent extends ConsumerWidget {
         const SizedBox(height: AppSpacing.lg),
         _StartChallengeCta(),
         const SizedBox(height: AppSpacing.lg),
-        Text('Active goals', style: Theme.of(context).textTheme.titleMedium),
+        Text(l10n.activeGoals, style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: AppSpacing.sm),
         Expanded(
           child: goals.isEmpty
@@ -178,6 +183,7 @@ class _ActiveChallengeSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     if (SupabaseConfig.isConfigured) {
       final progressAv = ref.watch(activeChallengeProgressModelProvider);
       return progressAv.when(
@@ -211,7 +217,7 @@ class _ActiveChallengeSection extends ConsumerWidget {
                           ),
                         ),
                         Text(
-                          'Day ${progress.currentDay} / ${challenge.durationDays}',
+                          l10n.dayProgress(progress.currentDay, challenge.durationDays),
                           style: Theme.of(context).textTheme.labelLarge,
                         ),
                       ],
@@ -225,17 +231,17 @@ class _ActiveChallengeSection extends ConsumerWidget {
                     Row(
                       children: [
                         Text(
-                          '${progress.completedDays} days completed',
+                          l10n.daysCompleted(progress.completedDays),
                           style: Theme.of(context).textTheme.labelSmall,
                         ),
                         const SizedBox(width: AppSpacing.md),
                         Text(
-                          '${daysRemaining > 0 ? daysRemaining : 0} days left',
+                          l10n.daysLeft(daysRemaining > 0 ? daysRemaining : 0),
                           style: Theme.of(context).textTheme.labelSmall,
                         ),
                         const SizedBox(width: AppSpacing.md),
                         Text(
-                          'Bonus: +${challenge.bonusXp} XP',
+                          l10n.bonusXp(challenge.bonusXp),
                           style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: AppTheme.accent,
                             fontWeight: FontWeight.w600,
@@ -276,7 +282,7 @@ class _ActiveChallengeSection extends ConsumerWidget {
                     ),
                   ),
                   Text(
-                    'Day ${progress.completionsCount} / ${progress.challenge.durationDays}',
+                    l10n.dayProgress(progress.completionsCount, progress.challenge.durationDays),
                     style: Theme.of(context).textTheme.labelLarge,
                   ),
                 ],
@@ -289,10 +295,10 @@ class _ActiveChallengeSection extends ConsumerWidget {
               const SizedBox(height: 4),
               Row(
                 children: [
-                  Text('${daysRemaining} days left', style: Theme.of(context).textTheme.labelSmall),
+                  Text(l10n.daysLeft(daysRemaining), style: Theme.of(context).textTheme.labelSmall),
                   const SizedBox(width: AppSpacing.md),
                   Text(
-                    'Bonus: +${progress.challenge.bonusXp} XP',
+                    l10n.bonusXp(progress.challenge.bonusXp),
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: AppTheme.accent,
                       fontWeight: FontWeight.w600,
@@ -313,14 +319,15 @@ class _RecommendedChallengesSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final modelValue = ref.watch(activeChallengeProgressModelProvider).maybeWhen(
           data: (d) => d,
           orElse: () => null,
         );
+    final progress = ref.watch(activeChallengeProgressProvider);
     final hasActive = SupabaseConfig.isConfigured
         ? _hasActiveFromModel(modelValue)
-        : ref.watch(activeChallengeProgressProvider) != null &&
-            !ref.watch(activeChallengeProgressProvider)!.completed;
+        : (progress != null && !progress.completed);
     if (hasActive) return const SizedBox.shrink();
     final content = ref.watch(contentRepositoryProvider);
     final challenges = content.getChallenges().where((c) => !c.isPremium).take(3).toList();
@@ -329,7 +336,7 @@ class _RecommendedChallengesSection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Recommended challenges',
+          l10n.recommendedChallenges,
           style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -366,6 +373,7 @@ class _RecommendedGoalsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final content = ref.watch(contentRepositoryProvider);
     final templates = content
         .getTemplates()
@@ -377,7 +385,7 @@ class _RecommendedGoalsSection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Recommended goals',
+          l10n.recommendedGoals,
           style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -409,10 +417,11 @@ class _StartChallengeCta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return OutlinedButton.icon(
       onPressed: () => context.push('/challenges'),
       icon: const Icon(Icons.emoji_events_outlined, size: 20),
-      label: const Text('Start a Challenge'),
+      label: Text(l10n.startChallenge),
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 12),
       ),
@@ -428,6 +437,7 @@ class _GoalCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
@@ -447,8 +457,8 @@ class _GoalCard extends ConsumerWidget {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      _Chip(text: _categoryLabel(goal.category)),
-                      _Chip(text: _difficultyLabel(goal.difficulty)),
+                      _Chip(text: _categoryLabel(l10n, goal.category)),
+                      _Chip(text: _difficultyLabel(l10n, goal.difficulty)),
                       _Chip(text: '${goal.baseXp} XP'),
                     ],
                   ),
@@ -464,22 +474,21 @@ class _GoalCard extends ConsumerWidget {
                           .read(goalActionsControllerProvider.notifier)
                           .completeGoal(goalId: goal.id);
                       if (!context.mounted) return;
+                      final msg = switch (result.status) {
+                        GoalCompleteStatus.success =>
+                          result.leveledUp
+                              ? l10n.xpEarnedLevelUp(result.earnedXp, result.newLevel)
+                              : l10n.xpEarned(result.earnedXp),
+                        GoalCompleteStatus.alreadyCompleted =>
+                          l10n.todayAlreadyCompleted,
+                        GoalCompleteStatus.goalNotFound =>
+                          l10n.goalNotFound,
+                      };
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(switch (result.status) {
-                            GoalCompleteStatus.success =>
-                              result.leveledUp
-                                  ? '+${result.earnedXp} XP — Level Up! (Lv ${result.newLevel})'
-                                  : '+${result.earnedXp} XP',
-                            GoalCompleteStatus.alreadyCompleted =>
-                              'Bugün zaten tamamlandı.',
-                            GoalCompleteStatus.goalNotFound =>
-                              'Hedef bulunamadı.',
-                          }),
-                        ),
+                        SnackBar(content: Text(msg)),
                       );
                     },
-              child: Text(doneToday ? 'Done' : 'Complete'),
+              child: Text(doneToday ? l10n.done : l10n.complete),
             ),
           ],
         ),
@@ -543,9 +552,10 @@ class _EmptyGoals extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Text(
-        'No active goals yet.\nTap + to create your first one.',
+        l10n.noActiveGoals,
         textAlign: TextAlign.center,
         style: Theme.of(context).textTheme.bodyMedium,
       ),
@@ -573,24 +583,24 @@ class _Error extends StatelessWidget {
   }
 }
 
-String _categoryLabel(GoalCategory c) {
+String _categoryLabel(AppLocalizations l10n, GoalCategory c) {
   return switch (c) {
-    GoalCategory.fitness => 'Fitness',
-    GoalCategory.study => 'Study',
-    GoalCategory.work => 'Work',
-    GoalCategory.focus => 'Focus',
-    GoalCategory.mind => 'Mind',
-    GoalCategory.health => 'Health',
-    GoalCategory.finance => 'Finance',
-    GoalCategory.selfGrowth => 'Self Growth',
-    GoalCategory.general => 'General',
+    GoalCategory.fitness => l10n.fitness,
+    GoalCategory.study => l10n.study,
+    GoalCategory.work => l10n.work,
+    GoalCategory.focus => l10n.focus,
+    GoalCategory.mind => l10n.mind,
+    GoalCategory.health => l10n.health,
+    GoalCategory.finance => l10n.finance,
+    GoalCategory.selfGrowth => l10n.selfGrowth,
+    GoalCategory.general => l10n.general,
   };
 }
 
-String _difficultyLabel(GoalDifficulty d) {
+String _difficultyLabel(AppLocalizations l10n, GoalDifficulty d) {
   return switch (d) {
-    GoalDifficulty.easy => 'Easy',
-    GoalDifficulty.medium => 'Medium',
-    GoalDifficulty.hard => 'Hard',
+    GoalDifficulty.easy => l10n.easy,
+    GoalDifficulty.medium => l10n.medium,
+    GoalDifficulty.hard => l10n.hard,
   };
 }
