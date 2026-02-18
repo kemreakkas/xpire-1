@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/supabase_config.dart';
+import '../../core/ui/nav_helpers.dart';
 import '../../core/ui/app_spacing.dart';
 import '../../core/ui/app_theme.dart';
 import '../../l10n/app_localizations.dart';
@@ -36,10 +37,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       _loading = true;
     });
     try {
-      await ref.read(authControllerProvider).login(
-            _emailController.text.trim(),
-            _passwordController.text,
-          );
+      await ref
+          .read(authControllerProvider)
+          .login(_emailController.text.trim(), _passwordController.text);
       if (!mounted) return;
       setState(() => _loading = false);
       // AuthGate will rebuild and show the app; no navigation needed.
@@ -77,6 +77,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       appBar: AppBar(
         title: Text(l10n.signIn),
         centerTitle: true,
+        automaticallyImplyLeading: shouldShowAppBarLeading(context),
       ),
       body: SafeArea(
         child: Center(
@@ -92,9 +93,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   children: [
                     Text(
                       l10n.appTitle,
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: AppSpacing.xl),

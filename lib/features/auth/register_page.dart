@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/supabase_config.dart';
+import '../../core/ui/nav_helpers.dart';
 import '../../core/services/analytics_service.dart';
 import '../../core/ui/app_spacing.dart';
 import '../../core/ui/app_theme.dart';
@@ -40,10 +41,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       _loading = true;
     });
     try {
-      await ref.read(authControllerProvider).register(
-            _emailController.text.trim(),
-            _passwordController.text,
-          );
+      await ref
+          .read(authControllerProvider)
+          .register(_emailController.text.trim(), _passwordController.text);
       ref.read(analyticsServiceProvider).track(AnalyticsEvents.userRegistered);
       if (!mounted) return;
       setState(() => _loading = false);
@@ -79,7 +79,10 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.createAccount)),
+      appBar: AppBar(
+        title: Text(l10n.createAccount),
+        automaticallyImplyLeading: shouldShowAppBarLeading(context),
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(

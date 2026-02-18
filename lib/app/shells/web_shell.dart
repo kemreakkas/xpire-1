@@ -55,7 +55,7 @@ class WebShell extends ConsumerWidget {
                   showLogout: SupabaseConfig.isConfigured,
                   showNewGoal:
                       location == '/dashboard' && SupabaseConfig.isConfigured,
-                  onNewGoal: () => context.push('/goals/create'),
+                  onNewGoal: () => context.go('/goals/create'),
                   l10n: l10n,
                 ),
                 Expanded(

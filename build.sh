@@ -19,3 +19,6 @@ fi
 flutter build web --release \
   --dart-define=SUPABASE_URL="$SUPABASE_URL" \
   --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+
+# SPA: serve app for any path so browser refresh on /dashboard etc. does not 404
+cp build/web/index.html build/web/404.html

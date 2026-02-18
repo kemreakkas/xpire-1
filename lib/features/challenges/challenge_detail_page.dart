@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/config/supabase_config.dart';
+import '../../core/ui/nav_helpers.dart';
 import '../../core/services/analytics_service.dart';
 import '../../core/ui/app_spacing.dart';
 import '../../core/ui/app_theme.dart';
@@ -30,26 +31,40 @@ class ChallengeDetailPage extends ConsumerWidget {
     final active = progressRepo.getCurrent();
     final progressState = ref.watch(activeChallengeProgressProvider);
     final progressModelAv = ref.watch(activeChallengeProgressModelProvider);
-    final progressModel = progressModelAv.maybeWhen(data: (d) => d, orElse: () => null);
-    final isActiveSupabase = SupabaseConfig.isConfigured &&
+    final progressModel = progressModelAv.maybeWhen(
+      data: (d) => d,
+      orElse: () => null,
+    );
+    final isActiveSupabase =
+        SupabaseConfig.isConfigured &&
         progressModel != null &&
         progressModel.challengeId == challengeId &&
         !progressModel.isCompleted &&
         progressModel.failedAt == null;
-    final isActive = SupabaseConfig.isConfigured ? isActiveSupabase : (active?.challengeId == challengeId);
+    final isActive = SupabaseConfig.isConfigured
+        ? isActiveSupabase
+        : (active?.challengeId == challengeId);
     final isCompleted = SupabaseConfig.isConfigured
-        ? (progressModel != null && progressModel.challengeId == challengeId && progressModel.isCompleted)
+        ? (progressModel != null &&
+              progressModel.challengeId == challengeId &&
+              progressModel.isCompleted)
         : (progressState?.completed ?? false);
 
     if (challenge == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(l10n.challenges)),
+        appBar: AppBar(
+          title: Text(l10n.challenges),
+          automaticallyImplyLeading: shouldShowAppBarLeading(context),
+        ),
         body: Center(child: Text(l10n.challengeNotFound)),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(challenge.title)),
+      appBar: AppBar(
+        title: Text(challenge.title),
+        automaticallyImplyLeading: shouldShowAppBarLeading(context),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.grid),
         child: Column(
@@ -78,8 +93,10 @@ class ChallengeDetailPage extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            Text(l10n.goalsInThisChallenge,
-                style: Theme.of(context).textTheme.titleSmall),
+            Text(
+              l10n.goalsInThisChallenge,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
             const SizedBox(height: AppSpacing.sm),
             _GoalListFromTemplates(
               content: content,
@@ -118,7 +135,9 @@ class ChallengeDetailPage extends ConsumerWidget {
                 children: [
                   if (progressState != null) ...[
                     Text(
-                      l10n.progressPercent((progressState.progress * 100).toStringAsFixed(0)),
+                      l10n.progressPercent(
+                        (progressState.progress * 100).toStringAsFixed(0),
+                      ),
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
                     const SizedBox(height: AppSpacing.sm),
@@ -131,8 +150,10 @@ class ChallengeDetailPage extends ConsumerWidget {
                       padding: const EdgeInsets.all(AppSpacing.md),
                       child: Row(
                         children: [
-                          Icon(Icons.check_circle_outline,
-                              color: Theme.of(context).colorScheme.primary),
+                          Icon(
+                            Icons.check_circle_outline,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                           const SizedBox(width: AppSpacing.sm),
                           Text(
                             l10n.youAreDoingThisChallenge,
@@ -146,10 +167,12 @@ class ChallengeDetailPage extends ConsumerWidget {
               )
             else
               FilledButton(
-                onPressed: () => _startChallenge(context, ref, challenge, content),
+                onPressed: () =>
+                    _startChallenge(context, ref, challenge, content),
                 style: FilledButton.styleFrom(
-                    backgroundColor: AppTheme.accent,
-                    padding: const EdgeInsets.symmetric(vertical: 16)),
+                  backgroundColor: AppTheme.accent,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
                 child: Text(l10n.startChallenge),
               ),
           ],
@@ -168,7 +191,10 @@ class ChallengeDetailPage extends ConsumerWidget {
       final uid = ref.read(authUserIdProvider);
       if (uid == null) return;
       final engine = ref.read(challengeEngineProvider);
-      final progress = await engine.startChallenge(userId: uid, challenge: challenge);
+      final progress = await engine.startChallenge(
+        userId: uid,
+        challenge: challenge,
+      );
       if (progress == null) {
         if (!context.mounted) return;
         final l10n = AppLocalizations.of(context)!;
@@ -181,16 +207,24 @@ class ChallengeDetailPage extends ConsumerWidget {
       ref.invalidate(goalsControllerProvider);
       ref.invalidate(profileControllerProvider);
       ref.read(analyticsServiceProvider).track(
-            AnalyticsEvents.challengeStarted,
-            {'challenge_id': challenge.id, 'duration_days': challenge.durationDays},
-          );
+        AnalyticsEvents.challengeStarted,
+        {'challenge_id': challenge.id, 'duration_days': challenge.durationDays},
+      );
       if (!context.mounted) return;
       final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.challengeStartedMessage(challenge.title, challenge.bonusXp))),
+        SnackBar(
+          content: Text(
+            l10n.challengeStartedMessage(challenge.title, challenge.bonusXp),
+          ),
+        ),
       );
-      context.pop();
-      context.push('/dashboard');
+      if (shouldShowAppBarLeading(context)) {
+        context.pop();
+        context.push('/dashboard');
+      } else {
+        context.go('/dashboard');
+      }
       return;
     }
 
@@ -208,37 +242,52 @@ class ChallengeDetailPage extends ConsumerWidget {
     for (final t in templates) {
       final goalId = const Uuid().v4();
       goalIds.add(goalId);
-      goals.add(Goal(
-        id: goalId,
-        title: t.title,
-        category: t.category,
-        difficulty: t.difficulty,
-        baseXp: t.baseXp,
-        isActive: true,
-        createdAt: now,
-      ));
+      goals.add(
+        Goal(
+          id: goalId,
+          title: t.title,
+          category: t.category,
+          difficulty: t.difficulty,
+          baseXp: t.baseXp,
+          isActive: true,
+          createdAt: now,
+        ),
+      );
     }
 
     await ref.read(goalsControllerProvider.notifier).addGoals(goals);
     await ref
         .read(challengeProgressRepositoryProvider)
-        .setCurrent(ActiveChallenge(
-          challengeId: challenge.id,
-          startedAt: now,
-          goalIds: goalIds,
-        ));
-    ref.read(analyticsServiceProvider).track(
-          AnalyticsEvents.challengeStarted,
-          {'challenge_id': challenge.id, 'duration_days': challenge.durationDays},
+        .setCurrent(
+          ActiveChallenge(
+            challengeId: challenge.id,
+            startedAt: now,
+            goalIds: goalIds,
+          ),
         );
+    ref.read(analyticsServiceProvider).track(AnalyticsEvents.challengeStarted, {
+      'challenge_id': challenge.id,
+      'duration_days': challenge.durationDays,
+    });
 
     if (!context.mounted) return;
     final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.challengeStartedMessageOffline(challenge.title, challenge.bonusXp))),
+      SnackBar(
+        content: Text(
+          l10n.challengeStartedMessageOffline(
+            challenge.title,
+            challenge.bonusXp,
+          ),
+        ),
+      ),
     );
-    context.pop();
-    context.push('/dashboard');
+    if (shouldShowAppBarLeading(context)) {
+      context.pop();
+      context.push('/dashboard');
+    } else {
+      context.go('/dashboard');
+    }
   }
 
   Future<void> _claimBonus(
@@ -247,16 +296,15 @@ class ChallengeDetailPage extends ConsumerWidget {
     Challenge challenge,
   ) async {
     final profileRepo = ref.read(profileRepositoryProvider);
-    final profile =
-        profileRepo.readSync() ?? await profileRepo.loadOrCreate();
+    final profile = profileRepo.readSync() ?? await profileRepo.loadOrCreate();
     final xpService = ref.read(xpServiceProvider);
     final updated = xpService.grantBonusXp(profile, challenge.bonusXp);
     await profileRepo.save(updated);
     await ref.read(challengeProgressRepositoryProvider).clear();
     ref.read(analyticsServiceProvider).track(
-          AnalyticsEvents.challengeCompleted,
-          {'challenge_id': challenge.id, 'bonus_xp': challenge.bonusXp},
-        );
+      AnalyticsEvents.challengeCompleted,
+      {'challenge_id': challenge.id, 'bonus_xp': challenge.bonusXp},
+    );
     ref.invalidate(profileControllerProvider);
     ref.invalidate(activeChallengeProgressProvider);
     if (!context.mounted) return;
@@ -264,8 +312,12 @@ class ChallengeDetailPage extends ConsumerWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(l10n.bonusXpClaimed(challenge.bonusXp))),
     );
-    context.pop();
-    context.push('/dashboard');
+    if (shouldShowAppBarLeading(context)) {
+      context.pop();
+      context.push('/dashboard');
+    } else {
+      context.go('/dashboard');
+    }
   }
 }
 
@@ -296,8 +348,11 @@ class _GoalListFromTemplates extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Row(
                     children: [
-                      Icon(Icons.flag_outlined,
-                          size: 18, color: Theme.of(context).colorScheme.outline),
+                      Icon(
+                        Icons.flag_outlined,
+                        size: 18,
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Text(
@@ -342,8 +397,10 @@ class _ClaimBonusSection extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.emoji_events,
-                    color: Theme.of(context).colorScheme.primary),
+                Icon(
+                  Icons.emoji_events,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 const SizedBox(width: AppSpacing.sm),
                 Text(
                   l10n.challengeCompleted,
@@ -360,8 +417,9 @@ class _ClaimBonusSection extends StatelessWidget {
             FilledButton(
               onPressed: onClaim,
               style: FilledButton.styleFrom(
-                  backgroundColor: AppTheme.accent,
-                  padding: const EdgeInsets.symmetric(vertical: 16)),
+                backgroundColor: AppTheme.accent,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
               child: Text(l10n.claimBonus),
             ),
           ],

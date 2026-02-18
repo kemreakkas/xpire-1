@@ -6,7 +6,10 @@ import '../core/ui/responsive.dart';
 import 'shells/mobile_shell.dart';
 import 'shells/web_shell.dart';
 
-/// Chooses layout: WebShell only on web in wide screens; else MobileShell.
+/// Chooses layout by viewport width. Responsive on web: resizing the browser
+/// switches the shell (wide → WebShell, narrow → MobileShell).
+/// - kIsWeb && width >= 768: WebShell (sidebar, topbar, no back arrow).
+/// - Otherwise: MobileShell (bottom nav, AppBar).
 /// No native desktop — mobile (Android/iOS) + web (browser) only.
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.routerState, required this.child});
@@ -16,6 +19,7 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Uses MediaQuery so layout updates when viewport is resized (web responsive).
     if (kIsWeb && Responsive.isWebWide(context)) {
       return WebShell(routerState: routerState, child: child);
     }

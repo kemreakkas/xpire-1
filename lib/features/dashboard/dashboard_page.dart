@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../core/config/supabase_config.dart';
 import '../../core/services/xp_service.dart';
 import '../../core/ui/app_spacing.dart';
+import '../../core/ui/nav_helpers.dart';
 import '../../core/ui/app_theme.dart';
 import '../../core/ui/responsive.dart';
 import '../../core/utils/date_key.dart';
@@ -276,7 +276,8 @@ class _ActiveChallengeSection extends ConsumerWidget {
                 );
           return Card(
             child: InkWell(
-              onTap: () => context.push('/challenges/${progress.challengeId}'),
+              onTap: () =>
+                  goOrPush(context, '/challenges/${progress.challengeId}'),
               borderRadius: BorderRadius.circular(16),
               child: Padding(
                 padding: const EdgeInsets.all(AppSpacing.md),
@@ -350,7 +351,7 @@ class _ActiveChallengeSection extends ConsumerWidget {
         progress.challenge.durationDays - progress.completionsCount;
     return Card(
       child: InkWell(
-        onTap: () => context.push('/challenges/${progress.challenge.id}'),
+        onTap: () => goOrPush(context, '/challenges/${progress.challenge.id}'),
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
@@ -457,7 +458,7 @@ class _RecommendedChallengesSection extends ConsumerWidget {
                   '${ch.title} · +${ch.bonusXp} XP',
                   overflow: TextOverflow.ellipsis,
                 ),
-                onPressed: () => context.push('/challenges/${ch.id}'),
+                onPressed: () => goOrPush(context, '/challenges/${ch.id}'),
               );
             },
           ),
@@ -500,7 +501,7 @@ class _RecommendedGoalsSection extends ConsumerWidget {
                 label: Text(t.title, overflow: TextOverflow.ellipsis),
                 onPressed: () {
                   ref.read(pendingTemplateIdProvider.notifier).set(t.id);
-                  context.push('/goals/create');
+                  goOrPush(context, '/goals/create');
                 },
               );
             },
@@ -518,7 +519,7 @@ class _StartChallengeCta extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return OutlinedButton.icon(
-      onPressed: () => context.push('/challenges'),
+      onPressed: () => goOrPush(context, '/challenges'),
       icon: const Icon(Icons.emoji_events_outlined, size: 20),
       label: Text(l10n.startChallenge),
       style: OutlinedButton.styleFrom(
@@ -695,6 +696,10 @@ String _categoryLabel(AppLocalizations l10n, GoalCategory c) {
     GoalCategory.finance => l10n.finance,
     GoalCategory.selfGrowth => l10n.selfGrowth,
     GoalCategory.general => l10n.general,
+    GoalCategory.digitalDetox => l10n.digitalDetox,
+    GoalCategory.social => l10n.social,
+    GoalCategory.creativity => l10n.creativity,
+    GoalCategory.discipline => l10n.discipline,
   };
 }
 

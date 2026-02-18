@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/services/analytics_service.dart';
+import '../../core/ui/nav_helpers.dart';
 import '../../core/ui/app_spacing.dart';
 import '../../core/ui/app_theme.dart';
 import '../../data/models/goal.dart';
@@ -66,6 +67,7 @@ class _GoalCreatePageState extends ConsumerState<GoalCreatePage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(l10n.newGoal),
+          automaticallyImplyLeading: shouldShowAppBarLeading(context),
           bottom: TabBar(
             tabs: [
               Tab(text: l10n.createCustom),
@@ -269,7 +271,9 @@ class _TemplateTab extends ConsumerWidget {
               ),
               ...GoalCategory.values.map(
                 (c) => DropdownMenuItem(
-                    value: c, child: Text(_categoryLabel(l10n, c))),
+                  value: c,
+                  child: Text(_categoryLabel(l10n, c)),
+                ),
               ),
             ],
             onChanged: onCategoryFilterChanged,
@@ -394,6 +398,10 @@ String _categoryLabel(AppLocalizations l10n, GoalCategory c) {
     GoalCategory.finance => l10n.finance,
     GoalCategory.selfGrowth => l10n.selfGrowth,
     GoalCategory.general => l10n.general,
+    GoalCategory.digitalDetox => l10n.digitalDetox,
+    GoalCategory.social => l10n.social,
+    GoalCategory.creativity => l10n.creativity,
+    GoalCategory.discipline => l10n.discipline,
   };
 }
 

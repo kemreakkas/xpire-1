@@ -166,6 +166,10 @@ class AppLocalizationsTr extends AppLocalizations {
       'Yapılandırılmış maceralarla alışkanlık edinin. Tüm hedefleri tamamlayarak bonus XP kazanın.';
 
   @override
+  String get challengesEmpty =>
+      'Şu an macera bulunmuyor. Başlamak için panelden hedef oluşturabilirsiniz.';
+
+  @override
   String daysBonusXp(int days, int xp) {
     return '$days gün · $xp bonus XP';
   }
@@ -314,6 +318,18 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get general => 'Genel';
+
+  @override
+  String get digitalDetox => 'Dijital Detoks';
+
+  @override
+  String get social => 'Sosyal';
+
+  @override
+  String get creativity => 'Yaratıcılık';
+
+  @override
+  String get discipline => 'Disiplin';
 
   @override
   String get easy => 'Kolay';

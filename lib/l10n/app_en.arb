@@ -56,6 +56,7 @@
   "weekly": "Weekly",
   "challenges": "Challenges",
   "challengesIntro": "Build habits with structured challenges. Complete all goals to earn bonus XP.",
+  "challengesEmpty": "No challenges right now. Create goals from the dashboard to get started.",
   "daysBonusXp": "{days} days · {xp} bonus XP",
   "@daysBonusXp": {
     "placeholders": {
@@ -133,6 +134,10 @@
   "finance": "Finance",
   "selfGrowth": "Self Growth",
   "general": "General",
+  "digitalDetox": "Digital Detox",
+  "social": "Social",
+  "creativity": "Creativity",
+  "discipline": "Discipline",
   "easy": "Easy",
   "medium": "Medium",
   "hard": "Hard",

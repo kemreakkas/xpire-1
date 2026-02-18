@@ -404,6 +404,12 @@ abstract class AppLocalizations {
   /// **'Build habits with structured challenges. Complete all goals to earn bonus XP.'**
   String get challengesIntro;
 
+  /// No description provided for @challengesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No challenges right now. Create goals from the dashboard to get started.'**
+  String get challengesEmpty;
+
   /// No description provided for @daysBonusXp.
   ///
   /// In en, this message translates to:
@@ -673,6 +679,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'General'**
   String get general;
+
+  /// No description provided for @digitalDetox.
+  ///
+  /// In en, this message translates to:
+  /// **'Digital Detox'**
+  String get digitalDetox;
+
+  /// No description provided for @social.
+  ///
+  /// In en, this message translates to:
+  /// **'Social'**
+  String get social;
+
+  /// No description provided for @creativity.
+  ///
+  /// In en, this message translates to:
+  /// **'Creativity'**
+  String get creativity;
+
+  /// No description provided for @discipline.
+  ///
+  /// In en, this message translates to:
+  /// **'Discipline'**
+  String get discipline;
 
   /// No description provided for @easy.
   ///

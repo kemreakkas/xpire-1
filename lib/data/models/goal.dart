@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 
-/// MVP: 8 primary categories for general growth. general kept for backward compat.
+/// Content categories for goals and templates. general kept for backward compat.
 enum GoalCategory {
   fitness,
   study,
@@ -12,6 +12,10 @@ enum GoalCategory {
   finance,
   selfGrowth,
   general,
+  digitalDetox,
+  social,
+  creativity,
+  discipline,
 }
 
 enum GoalDifficulty { easy, medium, hard }

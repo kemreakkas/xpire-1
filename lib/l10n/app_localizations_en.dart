@@ -166,6 +166,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Build habits with structured challenges. Complete all goals to earn bonus XP.';
 
   @override
+  String get challengesEmpty =>
+      'No challenges right now. Create goals from the dashboard to get started.';
+
+  @override
   String daysBonusXp(int days, int xp) {
     return '$days days · $xp bonus XP';
   }
@@ -316,6 +320,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get general => 'General';
+
+  @override
+  String get digitalDetox => 'Digital Detox';
+
+  @override
+  String get social => 'Social';
+
+  @override
+  String get creativity => 'Creativity';
+
+  @override
+  String get discipline => 'Discipline';
 
   @override
   String get easy => 'Easy';

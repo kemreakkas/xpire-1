@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 /// Single source of responsive breakpoints.
-/// Mobile (phones) vs Web-wide (browser at large width). No native desktop.
+/// Mobile (phones / narrow browser) vs Web-wide (browser at large width).
+/// On web, resizing the window across 768px switches shell (responsive).
 class Breakpoints {
   /// Below this width: mobile UI (phones, narrow browser).
   static const double mobile = 768;

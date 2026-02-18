@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../core/config/supabase_config.dart';
 import '../../core/locale/locale_controller.dart';
 import '../../core/ui/app_spacing.dart';
+import '../../core/ui/nav_helpers.dart';
 import '../../core/ui/responsive.dart';
 import '../../data/models/goal.dart';
 import '../../features/premium/premium_page.dart';
@@ -179,7 +179,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   SizedBox(
                     height: 52,
                     child: FilledButton(
-                      onPressed: () => context.push(PremiumPage.routePath),
+                      onPressed: () => goOrPush(context, PremiumPage.routePath),
                       child: Text(l10n.upgradeToPremium),
                     ),
                   ),
@@ -347,6 +347,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       GoalCategory.finance => l10n.finance,
       GoalCategory.selfGrowth => l10n.selfGrowth,
       GoalCategory.general => l10n.general,
+      GoalCategory.digitalDetox => l10n.digitalDetox,
+      GoalCategory.social => l10n.social,
+      GoalCategory.creativity => l10n.creativity,
+      GoalCategory.discipline => l10n.discipline,
     };
   }
 }

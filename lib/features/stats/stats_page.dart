@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../core/config/supabase_config.dart';
 import '../../core/ui/app_spacing.dart';
+import '../../core/ui/nav_helpers.dart';
 import '../../core/ui/app_theme.dart';
 import '../../core/ui/responsive.dart';
 import '../../data/models/stats.dart';
@@ -150,7 +150,8 @@ class _ActiveChallengeIndicator extends ConsumerWidget {
         if (challenge == null) return const SizedBox.shrink();
         return Card(
           child: InkWell(
-            onTap: () => context.push('/challenges/${progress.challengeId}'),
+            onTap: () =>
+                goOrPush(context, '/challenges/${progress.challengeId}'),
             borderRadius: BorderRadius.circular(12),
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.md),
@@ -235,6 +236,10 @@ String _categoryDisplayName(AppLocalizations l10n, String name) {
     'finance' => l10n.finance,
     'selfgrowth' => l10n.selfGrowth,
     'general' => l10n.general,
+    'digitaldetox' => l10n.digitalDetox,
+    'social' => l10n.social,
+    'creativity' => l10n.creativity,
+    'discipline' => l10n.discipline,
     _ =>
       name.isEmpty
           ? l10n.general
@@ -383,7 +388,7 @@ class _AdvancedStatsSection extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.sm),
             FilledButton(
-              onPressed: () => context.push(PremiumPage.routePath),
+              onPressed: () => goOrPush(context, PremiumPage.routePath),
               style: FilledButton.styleFrom(backgroundColor: AppTheme.accent),
               child: Text(l10n.upgrade),
             ),

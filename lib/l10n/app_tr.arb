@@ -56,6 +56,7 @@
   "weekly": "Haftalık",
   "challenges": "Macereler",
   "challengesIntro": "Yapılandırılmış maceralarla alışkanlık edinin. Tüm hedefleri tamamlayarak bonus XP kazanın.",
+  "challengesEmpty": "Şu an macera bulunmuyor. Başlamak için panelden hedef oluşturabilirsiniz.",
   "daysBonusXp": "{days} gün · {xp} bonus XP",
   "@daysBonusXp": {
     "placeholders": {
@@ -133,6 +134,10 @@
   "finance": "Finans",
   "selfGrowth": "Kişisel gelişim",
   "general": "Genel",
+  "digitalDetox": "Dijital Detoks",
+  "social": "Sosyal",
+  "creativity": "Yaratıcılık",
+  "discipline": "Disiplin",
   "easy": "Kolay",
   "medium": "Orta",
   "hard": "Zor",

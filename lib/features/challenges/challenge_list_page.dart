@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../core/ui/app_spacing.dart';
 import '../../core/ui/app_theme.dart';
+import '../../core/ui/nav_helpers.dart';
 import '../../core/ui/responsive.dart';
 import '../../data/models/challenge.dart';
 import '../../features/premium/premium_controller.dart';
@@ -35,26 +35,43 @@ class ChallengeListPage extends ConsumerWidget {
               ),
             ),
           ),
-          SliverPadding(
-            padding: EdgeInsets.symmetric(horizontal: padding),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: 360,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: 1.1,
+          if (challenges.isEmpty)
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(
+                child: Padding(
+                  padding: EdgeInsets.all(padding),
+                  child: Text(
+                    l10n.challengesEmpty,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               ),
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final c = challenges[index];
-                return _ChallengeCard(
-                  challenge: c,
-                  isLocked: c.isPremium && !isPremium,
-                  l10n: l10n,
-                  onTap: () => context.push('/challenges/${c.id}'),
-                );
-              }, childCount: challenges.length),
+            )
+          else
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: padding),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 360,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  childAspectRatio: 1.1,
+                ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final c = challenges[index];
+                  return _ChallengeCard(
+                    challenge: c,
+                    isLocked: c.isPremium && !isPremium,
+                    l10n: l10n,
+                    onTap: () => goOrPush(context, '/challenges/${c.id}'),
+                  );
+                }, childCount: challenges.length),
+              ),
             ),
-          ),
           const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
         ],
       );
@@ -68,17 +85,29 @@ class ChallengeListPage extends ConsumerWidget {
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         const SizedBox(height: AppSpacing.lg),
-        ...challenges.map(
-          (c) => Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-            child: _ChallengeCard(
-              challenge: c,
-              isLocked: c.isPremium && !isPremium,
-              l10n: l10n,
-              onTap: () => context.push('/challenges/${c.id}'),
+        if (challenges.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+            child: Text(
+              l10n.challengesEmpty,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+          )
+        else
+          ...challenges.map(
+            (c) => Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: _ChallengeCard(
+                challenge: c,
+                isLocked: c.isPremium && !isPremium,
+                l10n: l10n,
+                onTap: () => goOrPush(context, '/challenges/${c.id}'),
+              ),
             ),
           ),
-        ),
       ],
     );
   }

@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
+import '../core/ui/nav_helpers.dart';
 import 'package:hive/hive.dart';
 
 import '../app/app_shell.dart';
@@ -343,51 +345,64 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
+      GoRoute(
+        path: '/login',
+        pageBuilder: (context, state) =>
+            buildAppPage(context, state, const LoginPage()),
+      ),
       GoRoute(
         path: '/register',
-        builder: (context, state) => const RegisterPage(),
+        pageBuilder: (context, state) =>
+            buildAppPage(context, state, const RegisterPage()),
       ),
       ShellRoute(
-        builder: (context, state, child) => AppShell(
-          routerState: state,
-          child: child,
-        ),
+        builder: (context, state, child) =>
+            AppShell(routerState: state, child: child),
         routes: [
           GoRoute(
             path: '/dashboard',
-            builder: (context, state) => const DashboardPage(),
+            pageBuilder: (context, state) =>
+                buildAppPage(context, state, const DashboardPage()),
           ),
           GoRoute(
             path: '/challenges',
-            builder: (context, state) => const ChallengeListPage(),
+            pageBuilder: (context, state) =>
+                buildAppPage(context, state, const ChallengeListPage()),
             routes: [
               GoRoute(
                 path: ':id',
-                builder: (context, state) {
+                pageBuilder: (context, state) {
                   final id = state.pathParameters['id'] ?? '';
-                  return ChallengeDetailPage(challengeId: id);
+                  return buildAppPage(
+                    context,
+                    state,
+                    ChallengeDetailPage(challengeId: id),
+                  );
                 },
               ),
             ],
           ),
           GoRoute(
             path: '/stats',
-            builder: (context, state) => const StatsPage(),
+            pageBuilder: (context, state) =>
+                buildAppPage(context, state, const StatsPage()),
           ),
           GoRoute(
             path: '/profile',
-            builder: (context, state) => const ProfilePage(),
+            pageBuilder: (context, state) =>
+                buildAppPage(context, state, const ProfilePage()),
           ),
         ],
       ),
       GoRoute(
         path: '/goals/create',
-        builder: (context, state) => const GoalCreatePage(),
+        pageBuilder: (context, state) =>
+            buildAppPage(context, state, const GoalCreatePage()),
       ),
       GoRoute(
         path: PremiumPage.routePath,
-        builder: (context, state) => const PremiumPage(),
+        pageBuilder: (context, state) =>
+            buildAppPage(context, state, const PremiumPage()),
       ),
     ],
     errorBuilder: (context, state) => _RouterErrorPage(error: state.error),
@@ -403,7 +418,10 @@ class _RouterErrorPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.somethingWentWrong)),
+      appBar: AppBar(
+        title: Text(l10n.somethingWentWrong),
+        automaticallyImplyLeading: shouldShowAppBarLeading(context),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Text(error?.toString() ?? l10n.unknownRoutingError),
