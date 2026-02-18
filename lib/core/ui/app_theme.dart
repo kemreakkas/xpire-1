@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Tek vurgu rengi (minimal siyah/beyaz + accent)
+  /// Single accent color (black/white + #3B82F6). Dark theme default.
   static const Color accent = Color(0xFF3B82F6);
 
   static ThemeData get dark {

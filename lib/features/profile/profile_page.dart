@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -41,14 +39,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   void _initFromProfile(dynamic p) {
     if (_controllersInitialized) return;
     _controllersInitialized = true;
-    _fullNameController =
-        TextEditingController(text: p.fullName ?? '');
-    _usernameController =
-        TextEditingController(text: p.username ?? '');
+    _fullNameController = TextEditingController(text: p.fullName ?? '');
+    _usernameController = TextEditingController(text: p.username ?? '');
     _ageController = TextEditingController(
-        text: p.age != null ? '${p.age}' : '');
-    _occupationController =
-        TextEditingController(text: p.occupation ?? '');
+      text: p.age != null ? '${p.age}' : '',
+    );
+    _occupationController = TextEditingController(text: p.occupation ?? '');
     _focusCategory = p.focusCategory;
   }
 
@@ -90,154 +86,165 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.grid),
       child: profileAv.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text(e.toString())),
-          data: (p) {
-            _initFromProfile(p);
-            final formContent = SingleChildScrollView(
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildLanguageSection(context, l10n, currentLocale),
-                    const SizedBox(height: AppSpacing.sm),
-                    _buildEditableSection(context, p, l10n),
-                    const SizedBox(height: AppSpacing.lg),
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppSpacing.md),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              l10n.level,
-                              style: Theme.of(context).textTheme.labelLarge,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${p.level}',
-                              style: Theme.of(context).textTheme.headlineMedium,
-                            ),
-                          ],
-                        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text(e.toString())),
+        data: (p) {
+          _initFromProfile(p);
+          final formContent = SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildLanguageSection(context, l10n, currentLocale),
+                  const SizedBox(height: AppSpacing.sm),
+                  _buildEditableSection(context, p, l10n),
+                  const SizedBox(height: AppSpacing.lg),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.level,
+                            style: Theme.of(context).textTheme.labelLarge,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${p.level}',
+                            style: Theme.of(context).textTheme.headlineMedium,
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppSpacing.md),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              l10n.totalXp,
-                              style: Theme.of(context).textTheme.labelLarge,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${p.totalXp}',
-                              style: Theme.of(context).textTheme.headlineMedium,
-                            ),
-                          ],
-                        ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.totalXp,
+                            style: Theme.of(context).textTheme.labelLarge,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${p.totalXp}',
+                            style: Theme.of(context).textTheme.headlineMedium,
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppSpacing.md),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    l10n.premium,
-                                    style: Theme.of(context).textTheme.labelLarge,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    p.isPremiumEffective ? l10n.premiumActive : l10n.premiumNotActive,
-                                    style: Theme.of(context).textTheme.titleLarge,
-                                  ),
-                                ],
-                              ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  l10n.premium,
+                                  style: Theme.of(context).textTheme.labelLarge,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  p.isPremiumEffective
+                                      ? l10n.premiumActive
+                                      : l10n.premiumNotActive,
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
+                              ],
                             ),
-                            Icon(
-                              p.isPremiumEffective ? Icons.verified : Icons.lock_outline,
-                              color: p.isPremiumEffective
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Theme.of(context).colorScheme.outline,
-                            ),
-                          ],
-                        ),
+                          ),
+                          Icon(
+                            p.isPremiumEffective
+                                ? Icons.verified
+                                : Icons.lock_outline,
+                            color: p.isPremiumEffective
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).colorScheme.outline,
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.lg),
-                    SizedBox(
-                      height: 52,
-                      child: FilledButton(
-                        onPressed: () => context.push(PremiumPage.routePath),
-                        child: Text(l10n.upgradeToPremium),
-                      ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  SizedBox(
+                    height: 52,
+                    child: FilledButton(
+                      onPressed: () => context.push(PremiumPage.routePath),
+                      child: Text(l10n.upgradeToPremium),
                     ),
-                    if (SupabaseConfig.isConfigured) ...[
-                      const SizedBox(height: AppSpacing.md),
-                      OutlinedButton(
-                        onPressed: () async {
-                          await ref.read(logoutAndClearProvider)();
-                        },
-                        child: Text(l10n.signOut),
-                      ),
-                    ],
+                  ),
+                  if (SupabaseConfig.isConfigured) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    OutlinedButton(
+                      onPressed: () async {
+                        await ref.read(logoutAndClearProvider)();
+                      },
+                      child: Text(l10n.signOut),
+                    ),
                   ],
+                ],
+              ),
+            ),
+          );
+          if (Responsive.isWebWide(context)) {
+            return Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 560),
+                child: Card(
+                  margin: const EdgeInsets.symmetric(vertical: 24),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: formContent,
+                  ),
                 ),
               ),
             );
-            if (Responsive.isDesktop(context)) {
-              return Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 560),
-                  child: Card(
-                    margin: const EdgeInsets.symmetric(vertical: 24),
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: formContent,
-                    ),
-                  ),
-                ),
-              );
-            }
-            return formContent;
-          },
+          }
+          return formContent;
+        },
       ),
     );
   }
 
-  Widget _buildLanguageSection(BuildContext context, AppLocalizations l10n, Locale? currentLocale) {
+  Widget _buildLanguageSection(
+    BuildContext context,
+    AppLocalizations l10n,
+    Locale? currentLocale,
+  ) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              l10n.language,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text(l10n.language, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: AppSpacing.sm),
             DropdownButtonFormField<Locale?>(
-              value: currentLocale,
+              initialValue: currentLocale,
               decoration: InputDecoration(
                 labelText: l10n.language,
                 hintText: l10n.language,
               ),
               items: [
                 DropdownMenuItem(value: null, child: Text(l10n.systemDefault)),
-                DropdownMenuItem(value: const Locale('en'), child: Text(l10n.english)),
-                DropdownMenuItem(value: const Locale('tr'), child: Text(l10n.turkish)),
+                DropdownMenuItem(
+                  value: const Locale('en'),
+                  child: Text(l10n.english),
+                ),
+                DropdownMenuItem(
+                  value: const Locale('tr'),
+                  child: Text(l10n.turkish),
+                ),
               ],
               onChanged: (v) {
                 ref.read(localeProvider.notifier).setLocale(v);
@@ -249,17 +256,18 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     );
   }
 
-  Widget _buildEditableSection(BuildContext context, dynamic p, AppLocalizations l10n) {
+  Widget _buildEditableSection(
+    BuildContext context,
+    dynamic p,
+    AppLocalizations l10n,
+  ) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              l10n.yourInfo,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text(l10n.yourInfo, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: AppSpacing.sm),
             TextFormField(
               controller: _fullNameController,
@@ -295,7 +303,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             ),
             const SizedBox(height: AppSpacing.sm),
             DropdownButtonFormField<GoalCategory?>(
-              value: _focusCategory,
+              initialValue: _focusCategory,
               decoration: InputDecoration(
                 labelText: l10n.focusCategory,
                 hintText: l10n.optional,

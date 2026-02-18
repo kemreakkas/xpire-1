@@ -9,4 +9,7 @@ export PATH="$PATH:$(pwd)/flutter/bin"
 
 flutter config --enable-web
 flutter pub get
-flutter build web --release
+# SUPABASE_URL and SUPABASE_ANON_KEY from Vercel Environment Variables
+flutter build web --release \
+  --dart-define=SUPABASE_URL="${SUPABASE_URL:-}" \
+  --dart-define=SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY:-}"

@@ -20,10 +20,10 @@ class ChallengeListPage extends ConsumerWidget {
     final challenges = content.getChallenges();
     final isPremium = ref.watch(PremiumController.isPremiumProvider);
 
-    final isDesktop = Responsive.isDesktop(context);
-    final padding = isDesktop ? 24.0 : AppSpacing.grid;
+    final isWebWide = Responsive.isWebWide(context);
+    final padding = isWebWide ? 24.0 : AppSpacing.grid;
 
-    if (isDesktop) {
+    if (isWebWide) {
       return CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
@@ -44,18 +44,15 @@ class ChallengeListPage extends ConsumerWidget {
                 crossAxisSpacing: 16,
                 childAspectRatio: 1.1,
               ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final c = challenges[index];
-                  return _ChallengeCard(
-                    challenge: c,
-                    isLocked: c.isPremium && !isPremium,
-                    l10n: l10n,
-                    onTap: () => context.push('/challenges/${c.id}'),
-                  );
-                },
-                childCount: challenges.length,
-              ),
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final c = challenges[index];
+                return _ChallengeCard(
+                  challenge: c,
+                  isLocked: c.isPremium && !isPremium,
+                  l10n: l10n,
+                  onTap: () => context.push('/challenges/${c.id}'),
+                );
+              }, childCount: challenges.length),
             ),
           ),
           const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
@@ -123,8 +120,11 @@ class _ChallengeCard extends StatelessWidget {
                         ),
                         if (isLocked) ...[
                           const SizedBox(width: AppSpacing.sm),
-                          Icon(Icons.lock_outline,
-                              size: 18, color: Theme.of(context).colorScheme.outline),
+                          Icon(
+                            Icons.lock_outline,
+                            size: 18,
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
                         ],
                       ],
                     ),
@@ -137,7 +137,10 @@ class _ChallengeCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      l10n.daysBonusXp(challenge.durationDays, challenge.bonusXp),
+                      l10n.daysBonusXp(
+                        challenge.durationDays,
+                        challenge.bonusXp,
+                      ),
                       style: Theme.of(context).textTheme.labelSmall,
                     ),
                   ],
@@ -156,4 +159,3 @@ class _ChallengeCard extends StatelessWidget {
     );
   }
 }
-

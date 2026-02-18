@@ -10,11 +10,7 @@ import '../../state/providers.dart';
 
 /// SaaS-style shell: fixed sidebar, topbar, centered content.
 class WebShell extends ConsumerWidget {
-  const WebShell({
-    super.key,
-    required this.routerState,
-    required this.child,
-  });
+  const WebShell({super.key, required this.routerState, required this.child});
 
   final GoRouterState routerState;
   final Widget child;
@@ -32,10 +28,9 @@ class WebShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final location = routerState.matchedLocation;
-    final profile = ref.watch(profileControllerProvider).maybeWhen(
-          data: (d) => d,
-          orElse: () => null,
-        );
+    final profile = ref
+        .watch(profileControllerProvider)
+        .maybeWhen(data: (d) => d, orElse: () => null);
 
     return Scaffold(
       body: Row(
@@ -53,10 +48,13 @@ class WebShell extends ConsumerWidget {
                   title: _pageTitle(context, location),
                   userLabel: profile?.fullName?.isNotEmpty == true
                       ? profile!.fullName!
-                      : (SupabaseConfig.isConfigured ? 'Account' : l10n.profile),
+                      : (SupabaseConfig.isConfigured
+                            ? 'Account'
+                            : l10n.profile),
                   onLogout: () => ref.read(logoutAndClearProvider)(),
                   showLogout: SupabaseConfig.isConfigured,
-                  showNewGoal: location == '/dashboard' && SupabaseConfig.isConfigured,
+                  showNewGoal:
+                      location == '/dashboard' && SupabaseConfig.isConfigured,
                   onNewGoal: () => context.push('/goals/create'),
                   l10n: l10n,
                 ),
@@ -65,7 +63,7 @@ class WebShell extends ConsumerWidget {
                     child: Center(
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(
-                          maxWidth: ResponsiveLayout.contentMaxWidth,
+                          maxWidth: Responsive.maxContentWidth,
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(24),
@@ -108,7 +106,7 @@ class _Sidebar extends StatelessWidget {
     return Material(
       color: const Color(0xFF0F0F0F),
       child: SizedBox(
-        width: ResponsiveLayout.sidebarWidth,
+        width: Responsive.sideNavWidth,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -129,17 +127,17 @@ class _Sidebar extends StatelessWidget {
               final label = path == '/dashboard'
                   ? l10n.dashboard
                   : path == '/challenges'
-                      ? l10n.challenges
-                      : path == '/stats'
-                          ? l10n.stats
-                          : l10n.profile;
+                  ? l10n.challenges
+                  : path == '/stats'
+                  ? l10n.stats
+                  : l10n.profile;
               final icon = path == '/dashboard'
                   ? Icons.dashboard
                   : path == '/challenges'
-                      ? Icons.emoji_events
-                      : path == '/stats'
-                          ? Icons.insights
-                          : Icons.person;
+                  ? Icons.emoji_events
+                  : path == '/stats'
+                  ? Icons.insights
+                  : Icons.person;
               return _SidebarTile(
                 label: label,
                 icon: icon,
@@ -202,9 +200,9 @@ class _SidebarTileState extends State<_SidebarTile> {
                   Text(
                     widget.label,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: fg,
-                          fontWeight: widget.selected ? FontWeight.w600 : null,
-                        ),
+                      color: fg,
+                      fontWeight: widget.selected ? FontWeight.w600 : null,
+                    ),
                   ),
                 ],
               ),

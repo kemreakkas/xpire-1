@@ -44,16 +44,24 @@ class DashboardPage extends ConsumerWidget {
     final goals = goalsAv.requireValue;
 
     final l10n = AppLocalizations.of(context)!;
+    final isWebWide = Responsive.isWebWide(context);
+    final content = _DashboardContent(
+      profile: profile,
+      goals: goals.where((g) => g.isActive).toList(growable: false),
+      xpService: xpService,
+      completionsAv: completionsAv,
+      l10n: l10n,
+    );
+    if (isWebWide) {
+      return Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: content,
+      );
+    }
     return ResponsiveCenter(
       padding: const EdgeInsets.all(AppSpacing.grid),
       maxWidth: 820,
-      child: _DashboardContent(
-        profile: profile,
-        goals: goals.where((g) => g.isActive).toList(growable: false),
-        xpService: xpService,
-        completionsAv: completionsAv,
-        l10n: l10n,
-      ),
+      child: content,
     );
   }
 }
@@ -94,8 +102,8 @@ class _DashboardContent extends ConsumerWidget {
       orElse: () => <String>{},
     );
 
-    final isDesktop = Responsive.isDesktop(context);
-    final spacing = isDesktop ? AppSpacing.lg : AppSpacing.md;
+    final isWebWide = Responsive.isWebWide(context);
+    final spacing = isWebWide ? AppSpacing.lg : AppSpacing.md;
 
     Widget levelCard = Card(
       child: Padding(
@@ -142,7 +150,7 @@ class _DashboardContent extends ConsumerWidget {
       ),
     );
 
-    if (isDesktop) {
+    if (isWebWide) {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -175,8 +183,10 @@ class _DashboardContent extends ConsumerWidget {
                       SizedBox(height: spacing),
                       _StartChallengeCta(),
                       SizedBox(height: spacing),
-                      Text(l10n.activeGoals,
-                          style: Theme.of(context).textTheme.titleMedium),
+                      Text(
+                        l10n.activeGoals,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
                       const SizedBox(height: AppSpacing.sm),
                     ],
                   ),
@@ -190,10 +200,10 @@ class _DashboardContent extends ConsumerWidget {
                               const SizedBox(height: AppSpacing.sm),
                           itemBuilder: (context, index) {
                             final goal = goals[index];
-                            final doneToday =
-                                completedTodayIds.contains(goal.id);
-                            return _GoalCard(
-                                goal: goal, doneToday: doneToday);
+                            final doneToday = completedTodayIds.contains(
+                              goal.id,
+                            );
+                            return _GoalCard(goal: goal, doneToday: doneToday);
                           },
                         ),
                 ),
@@ -248,15 +258,22 @@ class _ActiveChallengeSection extends ConsumerWidget {
       final progressAv = ref.watch(activeChallengeProgressModelProvider);
       return progressAv.when(
         data: (progress) {
-          if (progress == null || progress.isCompleted || progress.failedAt != null) {
+          if (progress == null ||
+              progress.isCompleted ||
+              progress.failedAt != null) {
             return const SizedBox.shrink();
           }
-          final challenge = ref.read(contentRepositoryProvider).getChallengeById(progress.challengeId);
+          final challenge = ref
+              .read(contentRepositoryProvider)
+              .getChallengeById(progress.challengeId);
           if (challenge == null) return const SizedBox.shrink();
           final daysRemaining = challenge.durationDays - progress.currentDay;
           final progressFraction = challenge.durationDays == 0
               ? 0.0
-              : (progress.completedDays / challenge.durationDays).clamp(0.0, 1.0);
+              : (progress.completedDays / challenge.durationDays).clamp(
+                  0.0,
+                  1.0,
+                );
           return Card(
             child: InkWell(
               onTap: () => context.push('/challenges/${progress.challengeId}'),
@@ -268,7 +285,11 @@ class _ActiveChallengeSection extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.emoji_events_outlined, size: 20, color: AppTheme.accent),
+                        Icon(
+                          Icons.emoji_events_outlined,
+                          size: 20,
+                          color: AppTheme.accent,
+                        ),
                         const SizedBox(width: AppSpacing.sm),
                         Expanded(
                           child: Text(
@@ -277,7 +298,10 @@ class _ActiveChallengeSection extends ConsumerWidget {
                           ),
                         ),
                         Text(
-                          l10n.dayProgress(progress.currentDay, challenge.durationDays),
+                          l10n.dayProgress(
+                            progress.currentDay,
+                            challenge.durationDays,
+                          ),
                           style: Theme.of(context).textTheme.labelLarge,
                         ),
                       ],
@@ -302,10 +326,11 @@ class _ActiveChallengeSection extends ConsumerWidget {
                         const SizedBox(width: AppSpacing.md),
                         Text(
                           l10n.bonusXp(challenge.bonusXp),
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: AppTheme.accent,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: AppTheme.accent,
+                                fontWeight: FontWeight.w600,
+                              ),
                         ),
                       ],
                     ),
@@ -321,7 +346,8 @@ class _ActiveChallengeSection extends ConsumerWidget {
     }
     final progress = ref.watch(activeChallengeProgressProvider);
     if (progress == null || progress.completed) return const SizedBox.shrink();
-    final daysRemaining = progress.challenge.durationDays - progress.completionsCount;
+    final daysRemaining =
+        progress.challenge.durationDays - progress.completionsCount;
     return Card(
       child: InkWell(
         onTap: () => context.push('/challenges/${progress.challenge.id}'),
@@ -333,7 +359,11 @@ class _ActiveChallengeSection extends ConsumerWidget {
             children: [
               Row(
                 children: [
-                  Icon(Icons.emoji_events_outlined, size: 20, color: AppTheme.accent),
+                  Icon(
+                    Icons.emoji_events_outlined,
+                    size: 20,
+                    color: AppTheme.accent,
+                  ),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
@@ -342,7 +372,10 @@ class _ActiveChallengeSection extends ConsumerWidget {
                     ),
                   ),
                   Text(
-                    l10n.dayProgress(progress.completionsCount, progress.challenge.durationDays),
+                    l10n.dayProgress(
+                      progress.completionsCount,
+                      progress.challenge.durationDays,
+                    ),
                     style: Theme.of(context).textTheme.labelLarge,
                   ),
                 ],
@@ -355,7 +388,10 @@ class _ActiveChallengeSection extends ConsumerWidget {
               const SizedBox(height: 4),
               Row(
                 children: [
-                  Text(l10n.daysLeft(daysRemaining), style: Theme.of(context).textTheme.labelSmall),
+                  Text(
+                    l10n.daysLeft(daysRemaining),
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
                   const SizedBox(width: AppSpacing.md),
                   Text(
                     l10n.bonusXp(progress.challenge.bonusXp),
@@ -380,17 +416,20 @@ class _RecommendedChallengesSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final modelValue = ref.watch(activeChallengeProgressModelProvider).maybeWhen(
-          data: (d) => d,
-          orElse: () => null,
-        );
+    final modelValue = ref
+        .watch(activeChallengeProgressModelProvider)
+        .maybeWhen(data: (d) => d, orElse: () => null);
     final progress = ref.watch(activeChallengeProgressProvider);
     final hasActive = SupabaseConfig.isConfigured
         ? _hasActiveFromModel(modelValue)
         : (progress != null && !progress.completed);
     if (hasActive) return const SizedBox.shrink();
     final content = ref.watch(contentRepositoryProvider);
-    final challenges = content.getChallenges().where((c) => !c.isPremium).take(3).toList();
+    final challenges = content
+        .getChallenges()
+        .where((c) => !c.isPremium)
+        .take(3)
+        .toList();
     if (challenges.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -537,16 +576,18 @@ class _GoalCard extends ConsumerWidget {
                       final msg = switch (result.status) {
                         GoalCompleteStatus.success =>
                           result.leveledUp
-                              ? l10n.xpEarnedLevelUp(result.earnedXp, result.newLevel)
+                              ? l10n.xpEarnedLevelUp(
+                                  result.earnedXp,
+                                  result.newLevel,
+                                )
                               : l10n.xpEarned(result.earnedXp),
                         GoalCompleteStatus.alreadyCompleted =>
                           l10n.todayAlreadyCompleted,
-                        GoalCompleteStatus.goalNotFound =>
-                          l10n.goalNotFound,
+                        GoalCompleteStatus.goalNotFound => l10n.goalNotFound,
                       };
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(msg)),
-                      );
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(msg)));
                     },
               child: Text(doneToday ? l10n.done : l10n.complete),
             ),

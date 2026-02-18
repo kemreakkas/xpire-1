@@ -1,37 +1,30 @@
 import 'package:flutter/material.dart';
 
 /// Single source of responsive breakpoints.
-/// mobile: < 768, tablet: 768–1024, desktop: > 1024
+/// Mobile (phones) vs Web-wide (browser at large width). No native desktop.
 class Breakpoints {
+  /// Below this width: mobile UI (phones, narrow browser).
   static const double mobile = 768;
-  static const double tablet = 1024;
-  // Legacy aliases for compatibility
-  static const double sm = 600;
-  static const double md = 840;
-  static const double lg = 1200;
 }
 
-/// Layout constants for desktop/SaaS UI.
-class ResponsiveLayout {
-  static const double contentMaxWidth = 1100;
-  static const double sidebarWidth = 260;
-}
-
-/// Responsive helpers. Use [BuildContext] for MediaQuery width.
+/// Layout constants for web SaaS UI (wide browser only).
 abstract final class Responsive {
+  /// Max width for main content area in WebShell.
+  static const double maxContentWidth = 1100;
+
+  /// Fixed width of the web sidebar (side nav).
+  static const double sideNavWidth = 260;
+
   static double _width(BuildContext context) =>
       MediaQuery.sizeOf(context).width;
 
+  /// True when viewport width < 768 (phones, narrow browser).
   static bool isMobile(BuildContext context) =>
       _width(context) < Breakpoints.mobile;
 
-  static bool isTablet(BuildContext context) {
-    final w = _width(context);
-    return w >= Breakpoints.mobile && w < Breakpoints.tablet;
-  }
-
-  static bool isDesktop(BuildContext context) =>
-      _width(context) >= Breakpoints.tablet;
+  /// True when viewport width >= 768 (wide browser; web SaaS layout).
+  static bool isWebWide(BuildContext context) =>
+      _width(context) >= Breakpoints.mobile;
 }
 
 /// Centers content with a max width constraint. Use for page content.
