@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "if [ -d flutter ]; then cd flutter && git pull && cd ..; else git clone --depth 1 https://github.com/flutter/flutter.git; fi && flutter/bin/flutter config --enable-web && flutter/bin/flutter doctor",
+  "installCommand": "if [ -d flutter ]; then cd flutter && git pull && cd ..; else git clone --depth 1 https://github.com/flutter/flutter.git; fi && flutter/bin/flutter config --enable-web && ./flutter/bin/flutter doctor || true",
   "buildCommand": "bash build.sh",
   "outputDirectory": "build/web",
   "framework": null

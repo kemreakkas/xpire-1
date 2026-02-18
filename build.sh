@@ -1,14 +1,21 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
-# Install Flutter SDK if not present
-if [ ! -d "flutter" ]; then
-  git clone --depth 1 https://github.com/flutter/flutter.git
-fi
-export PATH="$PATH:$(pwd)/flutter/bin"
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+cd "$ROOT"
+FLUTTER="${ROOT}/flutter/bin/flutter"
 
-flutter config --enable-web
-flutter pub get
+# Install Flutter SDK if not present (Vercel installCommand may have done this)
+if [ ! -x "$FLUTTER" ]; then
+  if [ ! -d "flutter" ]; then
+    git clone --depth 1 https://github.com/flutter/flutter.git
+  fi
+  "$FLUTTER" config --enable-web
+  "$FLUTTER" doctor || true
+fi
+
+"$FLUTTER" config --enable-web
+"$FLUTTER" pub get
 
 # Build must have SUPABASE_URL and SUPABASE_ANON_KEY (Vercel Environment Variables)
 if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
@@ -16,7 +23,7 @@ if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
   exit 1
 fi
 
-flutter build web --release \
+"$FLUTTER" build web --release \
   --dart-define=SUPABASE_URL="$SUPABASE_URL" \
   --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
 
