@@ -137,7 +137,7 @@ class _GoalCreatePageState extends ConsumerState<GoalCreatePage> {
     } catch (e, st) {
       debugPrint('Create goal error: $e');
       debugPrint('$st');
-      if (mounted) {
+      if (context.mounted) {
         final l10n = AppLocalizations.of(context)!;
         final message = e is Exception ? '${l10n.somethingWentWrong}: ${e.toString()}' : l10n.somethingWentWrong;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -145,7 +145,7 @@ class _GoalCreatePageState extends ConsumerState<GoalCreatePage> {
         );
       }
     } finally {
-      if (mounted) setState(() => _isSaving = false);
+      if (context.mounted) setState(() => _isSaving = false);
     }
   }
 }
