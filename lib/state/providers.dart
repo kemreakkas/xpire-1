@@ -51,7 +51,8 @@ import 'controllers/completions_controller.dart';
 import 'controllers/goal_actions_controller.dart';
 import 'controllers/goals_controller.dart';
 import 'controllers/profile_controller.dart';
-export 'controllers/today_smart_plan_controller.dart' show todaySmartPlanProvider;
+export 'controllers/today_smart_plan_controller.dart'
+    show todaySmartPlanProvider;
 
 // Hive boxes (injected from main.dart)
 final profileBoxProvider = Provider<Box<UserProfile>>((ref) {
@@ -131,16 +132,26 @@ final supabaseLeaderboardRepositoryProvider =
     });
 
 /// Challenge leaderboard for a given challenge_id (top 10 + current user entry if not in top 10).
-final challengeLeaderboardProvider = FutureProvider.family<
-    ({List<ChallengeLeaderboardEntry> top10, ChallengeLeaderboardEntry? currentUserEntry}),
-    String>((ref, challengeId) async {
-  if (!SupabaseConfig.isConfigured) return (top10: [], currentUserEntry: null);
-  final repo = ref.read(supabaseLeaderboardRepositoryProvider);
-  return repo.getChallengeLeaderboard(challengeId);
-});
+final challengeLeaderboardProvider =
+    FutureProvider.family<
+      ({
+        List<ChallengeLeaderboardEntry> top10,
+        ChallengeLeaderboardEntry? currentUserEntry,
+      }),
+      String
+    >((ref, challengeId) async {
+      if (!SupabaseConfig.isConfigured) {
+        return (top10: <ChallengeLeaderboardEntry>[], currentUserEntry: null);
+      }
+
+      final repo = ref.read(supabaseLeaderboardRepositoryProvider);
+      return repo.getChallengeLeaderboard(challengeId);
+    });
 
 /// Weekly global leaderboard (top 20).
-final weeklyLeaderboardProvider = FutureProvider<List<WeeklyLeaderboardEntry>>((ref) async {
+final weeklyLeaderboardProvider = FutureProvider<List<WeeklyLeaderboardEntry>>((
+  ref,
+) async {
   if (!SupabaseConfig.isConfigured) return [];
   final repo = ref.read(supabaseLeaderboardRepositoryProvider);
   return repo.getWeeklyLeaderboard();
@@ -149,33 +160,38 @@ final weeklyLeaderboardProvider = FutureProvider<List<WeeklyLeaderboardEntry>>((
 /// Single community challenge by id (for detail page when not a template).
 final communityChallengeByIdProvider =
     FutureProvider.family<CommunityChallenge?, String>((ref, id) async {
-  if (!SupabaseConfig.isConfigured) return null;
-  final repo = ref.read(supabaseCommunityChallengesRepositoryProvider);
-  final map = await repo.getByIds([id]);
-  return map[id];
-});
+      if (!SupabaseConfig.isConfigured) return null;
+      final repo = ref.read(supabaseCommunityChallengesRepositoryProvider);
+      final map = await repo.getByIds([id]);
+      return map[id];
+    });
 
 /// My active community challenge participants (challenge_participants where is_completed = false).
-final myActiveParticipantsProvider = FutureProvider<List<ChallengeParticipant>>((ref) async {
-  if (!SupabaseConfig.isConfigured) return [];
-  final uid = ref.watch(authUserIdProvider);
-  if (uid == null) return [];
-  final repo = ref.read(supabaseChallengeParticipantsRepositoryProvider);
-  return repo.listMyActive(uid);
-});
+final myActiveParticipantsProvider = FutureProvider<List<ChallengeParticipant>>(
+  (ref) async {
+    if (!SupabaseConfig.isConfigured) return [];
+    final uid = ref.watch(authUserIdProvider);
+    if (uid == null) return [];
+    final repo = ref.read(supabaseChallengeParticipantsRepositoryProvider);
+    return repo.listMyActive(uid);
+  },
+);
 
 /// My active challenges with full challenge details (for Section 1).
-final myActiveChallengesWithDetailsProvider = FutureProvider<List<({ChallengeParticipant p, CommunityChallenge c})>>((ref) async {
-  final participants = await ref.watch(myActiveParticipantsProvider.future);
-  if (participants.isEmpty) return [];
-  final repo = ref.read(supabaseCommunityChallengesRepositoryProvider);
-  final ids = participants.map((e) => e.challengeId).toSet().toList();
-  final map = await repo.getByIds(ids);
-  return [
-    for (final p in participants)
-      if (map.containsKey(p.challengeId)) (p: p, c: map[p.challengeId]!),
-  ];
-});
+final myActiveChallengesWithDetailsProvider =
+    FutureProvider<List<({ChallengeParticipant p, CommunityChallenge c})>>((
+      ref,
+    ) async {
+      final participants = await ref.watch(myActiveParticipantsProvider.future);
+      if (participants.isEmpty) return [];
+      final repo = ref.read(supabaseCommunityChallengesRepositoryProvider);
+      final ids = participants.map((e) => e.challengeId).toSet().toList();
+      final map = await repo.getByIds(ids);
+      return [
+        for (final p in participants)
+          if (map.containsKey(p.challengeId)) (p: p, c: map[p.challengeId]!),
+      ];
+    });
 
 /// Number of community challenges the current user has created today (UTC). Used to enforce daily limit (max 2).
 final challengesCreatedTodayCountProvider = FutureProvider<int>((ref) async {
@@ -187,20 +203,42 @@ final challengesCreatedTodayCountProvider = FutureProvider<int>((ref) async {
 });
 
 /// Community (public) challenges with participant count and hasJoined (from challenge_with_counts view).
-final communityChallengesWithMetaProvider = FutureProvider<List<({CommunityChallenge challenge, int participantCount, bool hasJoined})>>((ref) async {
-  if (!SupabaseConfig.isConfigured) return [];
-  final challengesRepo = ref.read(supabaseCommunityChallengesRepositoryProvider);
-  final participantsRepo = ref.read(supabaseChallengeParticipantsRepositoryProvider);
-  final uid = ref.watch(authUserIdProvider);
-  final list = await challengesRepo.listPublicWithCounts();
-  if (list.isEmpty) return [];
-  final result = <({CommunityChallenge challenge, int participantCount, bool hasJoined})>[];
-  for (final item in list) {
-    final hasJoined = uid != null ? await participantsRepo.hasJoined(uid, item.challenge.id) : false;
-    result.add((challenge: item.challenge, participantCount: item.participantCount, hasJoined: hasJoined));
-  }
-  return result;
-});
+final communityChallengesWithMetaProvider =
+    FutureProvider<
+      List<
+        ({CommunityChallenge challenge, int participantCount, bool hasJoined})
+      >
+    >((ref) async {
+      if (!SupabaseConfig.isConfigured) return [];
+      final challengesRepo = ref.read(
+        supabaseCommunityChallengesRepositoryProvider,
+      );
+      final participantsRepo = ref.read(
+        supabaseChallengeParticipantsRepositoryProvider,
+      );
+      final uid = ref.watch(authUserIdProvider);
+      final list = await challengesRepo.listPublicWithCounts();
+      if (list.isEmpty) return [];
+      final result =
+          <
+            ({
+              CommunityChallenge challenge,
+              int participantCount,
+              bool hasJoined,
+            })
+          >[];
+      for (final item in list) {
+        final hasJoined = uid != null
+            ? await participantsRepo.hasJoined(uid, item.challenge.id)
+            : false;
+        result.add((
+          challenge: item.challenge,
+          participantCount: item.participantCount,
+          hasJoined: hasJoined,
+        ));
+      }
+      return result;
+    });
 
 final challengeEngineProvider = Provider<ChallengeEngine>((ref) {
   return ChallengeEngine(
@@ -525,7 +563,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'create',
                 pageBuilder: (context, state) => buildAppPage(
-                    context, state, const CommunityChallengeCreatePage()),
+                  context,
+                  state,
+                  const CommunityChallengeCreatePage(),
+                ),
               ),
               GoRoute(
                 path: ':id',
