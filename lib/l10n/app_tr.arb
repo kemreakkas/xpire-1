@@ -60,7 +60,12 @@
   "challengesEmptyTitle": "Henüz macera yok",
   "challengesNoActiveTitle": "Henüz Aktif Macera Yok",
   "challengesNoActiveSubtitle": "Bonus XP kazanmaya başlamak için ilk 7 günlük maceranıza başlayın.",
+  "challengesNoActiveSubtitleShort": "İlk 7 günlük maceranıza başlayın.",
   "browseChallenges": "Maceralara Göz At",
+  "activeChallengesSection": "Aktif Maceralar",
+  "startNewChallengeSection": "Yeni Macera Başlat",
+  "scrollToTemplates": "Şablonlara git",
+  "startChallengeButton": "Macerayı Başlat",
   "challengesLoadError": "Maceralar yüklenemedi. Tekrar denemek için çekin.",
   "daysBonusXp": "{days} gün · {xp} bonus XP",
   "@daysBonusXp": {

@@ -60,7 +60,12 @@
   "challengesEmptyTitle": "No challenges yet",
   "challengesNoActiveTitle": "No Active Challenges Yet",
   "challengesNoActiveSubtitle": "Start your first 7-day challenge to begin earning bonus XP.",
+  "challengesNoActiveSubtitleShort": "Start your first 7-day challenge.",
   "browseChallenges": "Browse Challenges",
+  "activeChallengesSection": "Active Challenges",
+  "startNewChallengeSection": "Start a New Challenge",
+  "scrollToTemplates": "Scroll to templates",
+  "startChallengeButton": "Start Challenge",
   "challengesLoadError": "Could not load challenges. Pull to try again.",
   "daysBonusXp": "{days} days · {xp} bonus XP",
   "@daysBonusXp": {

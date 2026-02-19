@@ -180,7 +180,23 @@ class AppLocalizationsEn extends AppLocalizations {
       'Start your first 7-day challenge to begin earning bonus XP.';
 
   @override
+  String get challengesNoActiveSubtitleShort =>
+      'Start your first 7-day challenge.';
+
+  @override
   String get browseChallenges => 'Browse Challenges';
+
+  @override
+  String get activeChallengesSection => 'Active Challenges';
+
+  @override
+  String get startNewChallengeSection => 'Start a New Challenge';
+
+  @override
+  String get scrollToTemplates => 'Scroll to templates';
+
+  @override
+  String get startChallengeButton => 'Start Challenge';
 
   @override
   String get challengesLoadError =>

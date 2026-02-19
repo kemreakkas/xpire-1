@@ -428,11 +428,41 @@ abstract class AppLocalizations {
   /// **'Start your first 7-day challenge to begin earning bonus XP.'**
   String get challengesNoActiveSubtitle;
 
+  /// No description provided for @challengesNoActiveSubtitleShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Start your first 7-day challenge.'**
+  String get challengesNoActiveSubtitleShort;
+
   /// No description provided for @browseChallenges.
   ///
   /// In en, this message translates to:
   /// **'Browse Challenges'**
   String get browseChallenges;
+
+  /// No description provided for @activeChallengesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Challenges'**
+  String get activeChallengesSection;
+
+  /// No description provided for @startNewChallengeSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a New Challenge'**
+  String get startNewChallengeSection;
+
+  /// No description provided for @scrollToTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'Scroll to templates'**
+  String get scrollToTemplates;
+
+  /// No description provided for @startChallengeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Challenge'**
+  String get startChallengeButton;
 
   /// No description provided for @challengesLoadError.
   ///

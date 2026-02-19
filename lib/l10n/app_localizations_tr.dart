@@ -180,7 +180,23 @@ class AppLocalizationsTr extends AppLocalizations {
       'Bonus XP kazanmaya başlamak için ilk 7 günlük maceranıza başlayın.';
 
   @override
+  String get challengesNoActiveSubtitleShort =>
+      'İlk 7 günlük maceranıza başlayın.';
+
+  @override
   String get browseChallenges => 'Maceralara Göz At';
+
+  @override
+  String get activeChallengesSection => 'Aktif Maceralar';
+
+  @override
+  String get startNewChallengeSection => 'Yeni Macera Başlat';
+
+  @override
+  String get scrollToTemplates => 'Şablonlara git';
+
+  @override
+  String get startChallengeButton => 'Macerayı Başlat';
 
   @override
   String get challengesLoadError =>
