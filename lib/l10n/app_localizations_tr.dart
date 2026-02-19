@@ -170,12 +170,45 @@ class AppLocalizationsTr extends AppLocalizations {
       'Şu an macera bulunmuyor. Başlamak için panelden hedef oluşturabilirsiniz.';
 
   @override
+  String get challengesEmptyTitle => 'Henüz macera yok';
+
+  @override
+  String get challengesNoActiveTitle => 'Henüz Aktif Macera Yok';
+
+  @override
+  String get challengesNoActiveSubtitle =>
+      'Bonus XP kazanmaya başlamak için ilk 7 günlük maceranıza başlayın.';
+
+  @override
+  String get browseChallenges => 'Maceralara Göz At';
+
+  @override
+  String get challengesLoadError =>
+      'Maceralar yüklenemedi. Tekrar denemek için çekin.';
+
+  @override
   String daysBonusXp(int days, int xp) {
     return '$days gün · $xp bonus XP';
   }
 
   @override
   String get activeGoals => 'Aktif hedefler';
+
+  @override
+  String get todaysSuggestedGoals => 'Bugünün Önerilen Hedefleri';
+
+  @override
+  String get reminderBannerMessage =>
+      'Bugünkü hedeflerinizi henüz tamamlamadınız.';
+
+  @override
+  String get dailyReminders => 'Günlük hatırlatmalar';
+
+  @override
+  String get enableDailyReminder => 'Günlük hatırlatmayı aç';
+
+  @override
+  String get reminderTime => 'Hatırlatma saati';
 
   @override
   String get recommendedChallenges => 'Önerilen maceralar';
@@ -215,6 +248,13 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get noActiveGoals =>
       'Henüz aktif hedef yok.\nİlk hedefinizi oluşturmak için + dokunun.';
+
+  @override
+  String get noActiveGoalsTitle => 'Henüz hedef yok';
+
+  @override
+  String get noActiveGoalsDescription =>
+      'XP kazanmak ve seri oluşturmak için ilk hedefinizi ekleyin.';
 
   @override
   String get goalsCompleted => 'Tamamlanan hedef';
@@ -281,6 +321,19 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String levelLabel(int level) {
     return 'Seviye $level';
+  }
+
+  @override
+  String get levelUpTitle => 'Seviye atladın!';
+
+  @override
+  String levelUpMessage(int level) {
+    return 'Seviye $level oldun. Devam et!';
+  }
+
+  @override
+  String dailyXpAvailable(int xp) {
+    return 'Bugün alınabilecek XP: $xp';
   }
 
   @override

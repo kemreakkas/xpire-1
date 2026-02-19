@@ -8,6 +8,7 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/config/env.dart';
+import 'core/notifications/notification_service.dart';
 import 'features/auth/auth_gate.dart';
 import 'core/log/app_log.dart';
 import 'data/models/active_challenge.dart';
@@ -59,6 +60,12 @@ Future<void> main() async {
       final completionsBox = await Hive.openBox<GoalCompletion>('completions');
       final activeChallengeBox =
           await Hive.openBox<ActiveChallenge>('active_challenge');
+
+      if (!kIsWeb) {
+        final notificationService = NotificationService();
+        await notificationService.initialize();
+        await notificationService.requestPermissions();
+      }
 
       runApp(
         ProviderScope(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../core/config/supabase_config.dart';
 import '../../core/locale/locale_controller.dart';
@@ -99,6 +100,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   _buildLanguageSection(context, l10n, currentLocale),
                   const SizedBox(height: AppSpacing.sm),
                   _buildEditableSection(context, p, l10n),
+                  const SizedBox(height: AppSpacing.sm),
+                  _buildReminderSection(context, p, l10n),
                   const SizedBox(height: AppSpacing.lg),
                   Card(
                     child: Padding(
@@ -192,6 +195,24 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       child: Text(l10n.signOut),
                     ),
                   ],
+                  const SizedBox(height: AppSpacing.xl),
+                  FutureBuilder<PackageInfo>(
+                    future: PackageInfo.fromPlatform(),
+                    builder: (context, snapshot) {
+                      final version = snapshot.data?.version ?? '—';
+                      final build = snapshot.data?.buildNumber ?? '';
+                      final versionStr = build.isEmpty
+                          ? version
+                          : '$version ($build)';
+                      return Text(
+                        versionStr,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -212,6 +233,89 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           }
           return formContent;
         },
+      ),
+    );
+  }
+
+  Future<void> _saveReminderSettings({
+    required bool reminderEnabled,
+    required String reminderTime,
+  }) async {
+    final p = ref.read(profileControllerProvider).value;
+    if (p == null) return;
+    final updated = p.copyWith(
+      reminderEnabled: reminderEnabled,
+      reminderTime: reminderTime,
+    );
+    await ref.read(profileControllerProvider.notifier).save(updated);
+    final notificationService = ref.read(notificationServiceProvider);
+    if (notificationService.isSupported) {
+      if (reminderEnabled) {
+        await notificationService.scheduleDailyReminder(
+          reminderTime: reminderTime,
+          streak: p.streak,
+        );
+      } else {
+        await notificationService.cancelDailyReminder();
+      }
+    }
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.profileSaved)),
+      );
+    }
+  }
+
+  Widget _buildReminderSection(
+    BuildContext context,
+    dynamic p,
+    AppLocalizations l10n,
+  ) {
+    final parts = (p.reminderTime as String).split(':');
+    final hour = parts.isNotEmpty ? int.tryParse(parts[0]) ?? 20 : 20;
+    final minute = parts.length > 1 ? int.tryParse(parts[1]) ?? 0 : 0;
+    final initialTime = TimeOfDay(hour: hour, minute: minute);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.dailyReminders,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            SwitchListTile(
+              title: Text(l10n.enableDailyReminder),
+              value: p.reminderEnabled as bool,
+              onChanged: (value) => _saveReminderSettings(
+                reminderEnabled: value,
+                reminderTime: p.reminderTime as String,
+              ),
+            ),
+            ListTile(
+              title: Text(l10n.reminderTime),
+              subtitle: Text(p.reminderTime as String),
+              trailing: const Icon(Icons.schedule),
+              onTap: () async {
+                final picked = await showTimePicker(
+                  context: context,
+                  initialTime: initialTime,
+                );
+                if (picked != null && mounted) {
+                  final h = picked.hour.toString().padLeft(2, '0');
+                  final m = picked.minute.toString().padLeft(2, '0');
+                  await _saveReminderSettings(
+                    reminderEnabled: p.reminderEnabled as bool,
+                    reminderTime: '$h:$m',
+                  );
+                }
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

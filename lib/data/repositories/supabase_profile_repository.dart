@@ -68,6 +68,10 @@ class SupabaseProfileRepository implements IProfileRepository {
         'age': null,
         'occupation': null,
         'focus_category': null,
+        'onboarding_completed': false,
+        'reminder_enabled': true,
+        'reminder_time': '20:00',
+        'last_notification_sent': null,
       });
       final created = UserProfile.initial();
       await _box.put(_cacheKey, created);
@@ -109,6 +113,12 @@ class SupabaseProfileRepository implements IProfileRepository {
         'age': profile.age,
         'occupation': profile.occupation,
         'focus_category': profile.focusCategory?.name,
+        'onboarding_completed': profile.onboardingCompleted,
+        'reminder_enabled': profile.reminderEnabled,
+        'reminder_time': _toTimeString(profile.reminderTime),
+        'last_notification_sent': profile.lastNotificationSent != null
+            ? _toDateString(profile.lastNotificationSent!)
+            : null,
         'updated_at': DateTime.now().toIso8601String(),
       }).eq('id', userId);
     } catch (e, st) {
@@ -145,6 +155,38 @@ class SupabaseProfileRepository implements IProfileRepository {
       age: (row['age'] as num?)?.toInt(),
       occupation: row['occupation'] as String?,
       focusCategory: focusCategory,
+      onboardingCompleted: (row['onboarding_completed'] as bool?) ?? false,
+      reminderEnabled: (row['reminder_enabled'] as bool?) ?? true,
+      reminderTime: _fromTimeRow(row['reminder_time']) ?? '20:00',
+      lastNotificationSent: _fromDateRow(row['last_notification_sent']),
     );
+  }
+
+  static String _toTimeString(String hhmm) {
+    if (hhmm.length >= 5 && hhmm[2] == ':') return hhmm;
+    return '20:00';
+  }
+
+  static String? _fromTimeRow(dynamic v) {
+    if (v == null) return null;
+    final s = v.toString().trim();
+    if (s.length >= 5) return s.substring(0, 5);
+    return null;
+  }
+
+  static String? _toDateString(DateTime date) {
+    final y = date.year;
+    final m = date.month.toString().padLeft(2, '0');
+    final d = date.day.toString().padLeft(2, '0');
+    return '$y-$m-$d';
+  }
+
+  static DateTime? _fromDateRow(dynamic v) {
+    if (v == null) return null;
+    try {
+      return DateTime.parse(v.toString());
+    } catch (_) {
+      return null;
+    }
   }
 }

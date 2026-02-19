@@ -57,6 +57,11 @@
   "challenges": "Macereler",
   "challengesIntro": "Yapılandırılmış maceralarla alışkanlık edinin. Tüm hedefleri tamamlayarak bonus XP kazanın.",
   "challengesEmpty": "Şu an macera bulunmuyor. Başlamak için panelden hedef oluşturabilirsiniz.",
+  "challengesEmptyTitle": "Henüz macera yok",
+  "challengesNoActiveTitle": "Henüz Aktif Macera Yok",
+  "challengesNoActiveSubtitle": "Bonus XP kazanmaya başlamak için ilk 7 günlük maceranıza başlayın.",
+  "browseChallenges": "Maceralara Göz At",
+  "challengesLoadError": "Maceralar yüklenemedi. Tekrar denemek için çekin.",
   "daysBonusXp": "{days} gün · {xp} bonus XP",
   "@daysBonusXp": {
     "placeholders": {
@@ -65,6 +70,11 @@
     }
   },
   "activeGoals": "Aktif hedefler",
+  "todaysSuggestedGoals": "Bugünün Önerilen Hedefleri",
+  "reminderBannerMessage": "Bugünkü hedeflerinizi henüz tamamlamadınız.",
+  "dailyReminders": "Günlük hatırlatmalar",
+  "enableDailyReminder": "Günlük hatırlatmayı aç",
+  "reminderTime": "Hatırlatma saati",
   "recommendedChallenges": "Önerilen maceralar",
   "recommendedGoals": "Önerilen hedefler",
   "startChallenge": "Macera başlat",
@@ -96,6 +106,8 @@
   "complete": "Tamamla",
   "done": "Tamamlandı",
   "noActiveGoals": "Henüz aktif hedef yok.\nİlk hedefinizi oluşturmak için + dokunun.",
+  "noActiveGoalsTitle": "Henüz hedef yok",
+  "noActiveGoalsDescription": "XP kazanmak ve seri oluşturmak için ilk hedefinizi ekleyin.",
   "goalsCompleted": "Tamamlanan hedef",
   "currentStreak": "Mevcut seri",
   "completedToday": "Bugün tamamlanan",
@@ -120,6 +132,19 @@
   "@levelLabel": {
     "placeholders": {
       "level": {"type": "int"}
+    }
+  },
+  "levelUpTitle": "Seviye atladın!",
+  "levelUpMessage": "Seviye {level} oldun. Devam et!",
+  "@levelUpMessage": {
+    "placeholders": {
+      "level": {"type": "int"}
+    }
+  },
+  "dailyXpAvailable": "Bugün alınabilecek XP: {xp}",
+  "@dailyXpAvailable": {
+    "placeholders": {
+      "xp": {"type": "int"}
     }
   },
   "completedTodayCount": "Bugün tamamlanan",

@@ -20,6 +20,10 @@ class UserProfile {
     this.age,
     this.occupation,
     this.focusCategory,
+    this.onboardingCompleted = false,
+    this.reminderEnabled = true,
+    this.reminderTime = '20:00',
+    this.lastNotificationSent,
   });
 
   /// Default for a fresh install. All profile fields optional; app works with empty profile.
@@ -37,6 +41,10 @@ class UserProfile {
         age: null,
         occupation: null,
         focusCategory: null,
+        onboardingCompleted: false,
+        reminderEnabled: true,
+        reminderTime: '20:00',
+        lastNotificationSent: null,
       );
 
   final int level;
@@ -59,6 +67,16 @@ class UserProfile {
   final String? occupation;
   final GoalCategory? focusCategory;
 
+  /// When false, user sees onboarding on first login; after completion we set true.
+  final bool onboardingCompleted;
+
+  /// Daily reminder: enabled by default. Mobile = local notification; web = in-app banner.
+  final bool reminderEnabled;
+  /// Time of day for reminder, "HH:mm" (e.g. "20:00").
+  final String reminderTime;
+  /// Last date we sent or cancelled the reminder (used to cancel after first goal of day).
+  final DateTime? lastNotificationSent;
+
   /// True if user has an active premium subscription (server or local).
   bool get isPremiumEffective =>
       subscriptionStatus == 'active' || (subscriptionStatus == null && isPremium);
@@ -78,6 +96,10 @@ class UserProfile {
     int? age,
     String? occupation,
     GoalCategory? focusCategory,
+    bool? onboardingCompleted,
+    bool? reminderEnabled,
+    String? reminderTime,
+    DateTime? lastNotificationSent,
   }) {
     return UserProfile(
       level: level ?? this.level,
@@ -94,6 +116,10 @@ class UserProfile {
       age: age ?? this.age,
       occupation: occupation ?? this.occupation,
       focusCategory: focusCategory ?? this.focusCategory,
+      onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
+      reminderEnabled: reminderEnabled ?? this.reminderEnabled,
+      reminderTime: reminderTime ?? this.reminderTime,
+      lastNotificationSent: lastNotificationSent ?? this.lastNotificationSent,
     );
   }
 }
@@ -135,6 +161,21 @@ class UserProfileAdapter extends TypeAdapter<UserProfile> {
       focusCategory =
           fc < 0 || fc >= GoalCategory.values.length ? null : GoalCategory.values[fc];
     } catch (_) {}
+    bool onboardingCompleted = false;
+    try {
+      onboardingCompleted = reader.readBool();
+    } catch (_) {}
+    bool reminderEnabled = true;
+    String reminderTime = '20:00';
+    DateTime? lastNotificationSent;
+    try {
+      reminderEnabled = reader.readBool();
+      reminderTime = reader.readString();
+      if (reminderTime.isEmpty) reminderTime = '20:00';
+      final sentMs = reader.readInt();
+      lastNotificationSent =
+          sentMs <= 0 ? null : DateTime.fromMillisecondsSinceEpoch(sentMs);
+    } catch (_) {}
     return UserProfile(
       level: level,
       currentXp: currentXp,
@@ -150,6 +191,10 @@ class UserProfileAdapter extends TypeAdapter<UserProfile> {
       age: age,
       occupation: occupation,
       focusCategory: focusCategory,
+      onboardingCompleted: onboardingCompleted,
+      reminderEnabled: reminderEnabled,
+      reminderTime: reminderTime,
+      lastNotificationSent: lastNotificationSent,
     );
   }
 
@@ -168,6 +213,10 @@ class UserProfileAdapter extends TypeAdapter<UserProfile> {
       ..writeString(obj.username ?? '')
       ..writeInt(obj.age ?? -1)
       ..writeString(obj.occupation ?? '')
-      ..writeInt(obj.focusCategory?.index ?? -1);
+      ..writeInt(obj.focusCategory?.index ?? -1)
+      ..writeBool(obj.onboardingCompleted)
+      ..writeBool(obj.reminderEnabled)
+      ..writeString(obj.reminderTime)
+      ..writeInt(obj.lastNotificationSent?.millisecondsSinceEpoch ?? -1);
   }
 }

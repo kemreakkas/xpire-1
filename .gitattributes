@@ -1,0 +1,2 @@
+# Ensure shell scripts use LF on all platforms (required for Vercel/Linux)
+build.sh text eol=lf

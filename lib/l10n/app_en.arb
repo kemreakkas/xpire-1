@@ -57,6 +57,11 @@
   "challenges": "Challenges",
   "challengesIntro": "Build habits with structured challenges. Complete all goals to earn bonus XP.",
   "challengesEmpty": "No challenges right now. Create goals from the dashboard to get started.",
+  "challengesEmptyTitle": "No challenges yet",
+  "challengesNoActiveTitle": "No Active Challenges Yet",
+  "challengesNoActiveSubtitle": "Start your first 7-day challenge to begin earning bonus XP.",
+  "browseChallenges": "Browse Challenges",
+  "challengesLoadError": "Could not load challenges. Pull to try again.",
   "daysBonusXp": "{days} days · {xp} bonus XP",
   "@daysBonusXp": {
     "placeholders": {
@@ -65,6 +70,11 @@
     }
   },
   "activeGoals": "Active goals",
+  "todaysSuggestedGoals": "Today's Suggested Goals",
+  "reminderBannerMessage": "You haven't completed today's goals yet.",
+  "dailyReminders": "Daily reminders",
+  "enableDailyReminder": "Enable daily reminder",
+  "reminderTime": "Reminder time",
   "recommendedChallenges": "Recommended challenges",
   "recommendedGoals": "Recommended goals",
   "startChallenge": "Start a Challenge",
@@ -96,6 +106,8 @@
   "complete": "Complete",
   "done": "Done",
   "noActiveGoals": "No active goals yet.\nTap + to create your first one.",
+  "noActiveGoalsTitle": "No goals yet",
+  "noActiveGoalsDescription": "Create your first goal to start earning XP and building streaks.",
   "goalsCompleted": "Goals completed",
   "currentStreak": "Current streak",
   "completedToday": "Completed today",
@@ -120,6 +132,19 @@
   "@levelLabel": {
     "placeholders": {
       "level": {"type": "int"}
+    }
+  },
+  "levelUpTitle": "Level Up!",
+  "levelUpMessage": "You reached level {level}. Keep going!",
+  "@levelUpMessage": {
+    "placeholders": {
+      "level": {"type": "int"}
+    }
+  },
+  "dailyXpAvailable": "Daily XP available: {xp}",
+  "@dailyXpAvailable": {
+    "placeholders": {
+      "xp": {"type": "int"}
     }
   },
   "completedTodayCount": "Completed today",

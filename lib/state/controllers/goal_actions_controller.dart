@@ -22,8 +22,13 @@ class GoalActionsController extends AsyncNotifier<void> {
   }) async {
     final completionDate = dateOnly(date ?? DateTime.now());
     final completionId = '${goalId}_${yyyymmdd(completionDate)}';
+    final todayKey = yyyymmdd(completionDate);
 
     final completionRepo = ref.read(completionRepositoryProvider);
+    final completionsBefore = completionRepo.listSync();
+    final wasFirstCompletionToday = !completionsBefore
+        .any((c) => yyyymmdd(c.date) == todayKey);
+
     if (completionRepo.containsId(completionId)) {
       return const GoalCompleteResult(
         status: GoalCompleteStatus.alreadyCompleted,
@@ -128,6 +133,16 @@ class GoalActionsController extends AsyncNotifier<void> {
               );
           ref.invalidate(activeChallengeProgressModelProvider);
         }
+      }
+
+      if (wasFirstCompletionToday) {
+        final profileRepo = ref.read(profileRepositoryProvider);
+        final updatedProfile = result.profile.copyWith(
+          lastNotificationSent: completionDate,
+        );
+        await profileRepo.save(updatedProfile);
+        ref.invalidate(profileControllerProvider);
+        await ref.read(notificationServiceProvider).cancelDailyReminder();
       }
 
       response = GoalCompleteResult(

@@ -6,7 +6,11 @@
     "test": "playwright test",
     "test:ui": "playwright test --ui",
     "test:headed": "playwright test --headed",
-    "start": "serve ../build/web -l 8080"
+    "test:chromium": "playwright test --project=chromium",
+    "start": "serve ../build/web -l 8080",
+    "build:local": "cd .. && flutter pub get && flutter build web --release",
+    "postbuild:local": "node -e \"const fs=require('fs'); const p='../build/web'; fs.copyFileSync(p+'/index.html', p+'/404.html');\"",
+    "full": "npm run build:local && npm run postbuild:local && npm run test:chromium"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.0",

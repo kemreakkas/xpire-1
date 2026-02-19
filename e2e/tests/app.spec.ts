@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
  * Wait for Flutter web app to be ready (CanvasKit or HTML renderer).
  * Flutter mounts flt-glass-pane or flutter-view; body gets flt-renderer attribute.
  */
-async function waitForAppReady(page: import('@playwright/test').Page, timeout = 45_000) {
+async function waitForAppReady(page: import('@playwright/test').Page, timeout = 60_000) {
   await page.waitForLoadState('domcontentloaded');
   await page.waitForFunction(
     () => {

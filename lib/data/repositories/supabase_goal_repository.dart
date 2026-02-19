@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -48,7 +49,11 @@ class SupabaseGoalRepository {
 
   Future<void> upsert(Goal goal) async {
     final uid = _userId;
-    if (SupabaseConfig.isConfigured && uid != null) {
+    if (SupabaseConfig.isConfigured) {
+      if (uid == null) {
+        AppLog.error('Goal upsert failed: no user', null, StackTrace.current);
+        throw StateError('Not signed in. Sign in to save goals.');
+      }
       try {
         await _client.from('goals').upsert({
           'id': goal.id,
@@ -65,6 +70,9 @@ class SupabaseGoalRepository {
         });
       } catch (e, st) {
         AppLog.error('Goal upsert failed', e, st);
+        if (e is Exception) {
+          debugPrint('Supabase goal error: $e');
+        }
         rethrow;
       }
     }

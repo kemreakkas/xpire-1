@@ -3,12 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/config/supabase_config.dart';
+import '../../core/ui/app_radius.dart';
+import '../../core/ui/app_spacing.dart';
 import '../../core/ui/app_theme.dart';
 import '../../core/ui/responsive.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/providers.dart';
 
-/// SaaS-style shell: fixed sidebar, topbar, centered content.
+/// SaaS-style shell for web (wide): fixed 260px sidebar, topbar, centered content.
+/// No AppBar (no back arrow). No bottom nav. No mobile spacing or transitions.
 class WebShell extends ConsumerWidget {
   const WebShell({super.key, required this.routerState, required this.child});
 
@@ -66,7 +69,7 @@ class WebShell extends ConsumerWidget {
                           maxWidth: Responsive.maxContentWidth,
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.all(24),
+                          padding: const EdgeInsets.all(AppSpacing.lg),
                           child: child,
                         ),
                       ),
@@ -104,15 +107,15 @@ class _Sidebar extends StatelessWidget {
     };
 
     return Material(
-      color: const Color(0xFF0F0F0F),
+      color: AppTheme.sidebarDark,
       child: SizedBox(
         width: Responsive.sideNavWidth,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.lg),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               child: Text(
                 'Xpire',
                 style: theme.textTheme.titleLarge?.copyWith(
@@ -121,7 +124,7 @@ class _Sidebar extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: AppSpacing.xl),
             ..._paths.map((path) {
               final selected = isSelected(path);
               final label = path == '/dashboard'
@@ -184,19 +187,25 @@ class _SidebarTileState extends State<_SidebarTile> {
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xs,
+        ),
         child: Material(
           color: bg,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppRadius.mdRadius,
           child: InkWell(
             onTap: widget.onTap,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppRadius.mdRadius,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm,
+              ),
               child: Row(
                 children: [
                   Icon(widget.icon, size: 22, color: fg),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.sm),
                   Text(
                     widget.label,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -237,12 +246,15 @@ class _TopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Material(
-      elevation: 0,
-      color: const Color(0xFF141414),
+      elevation: AppTheme.cardElevation,
+      color: AppTheme.topbarDark,
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md,
+          ),
           child: Row(
             children: [
               Text(
@@ -253,7 +265,7 @@ class _TopBar extends StatelessWidget {
                 ),
               ),
               if (showNewGoal && onNewGoal != null) ...[
-                const SizedBox(width: 16),
+                const SizedBox(width: AppSpacing.md),
                 MouseRegion(
                   cursor: SystemMouseCursors.click,
                   child: FilledButton.icon(
@@ -276,7 +288,7 @@ class _TopBar extends StatelessWidget {
                 maxLines: 1,
               ),
               if (showLogout) ...[
-                const SizedBox(width: 16),
+                const SizedBox(width: AppSpacing.md),
                 MouseRegion(
                   cursor: SystemMouseCursors.click,
                   child: TextButton(

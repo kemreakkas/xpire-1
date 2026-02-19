@@ -170,12 +170,45 @@ class AppLocalizationsEn extends AppLocalizations {
       'No challenges right now. Create goals from the dashboard to get started.';
 
   @override
+  String get challengesEmptyTitle => 'No challenges yet';
+
+  @override
+  String get challengesNoActiveTitle => 'No Active Challenges Yet';
+
+  @override
+  String get challengesNoActiveSubtitle =>
+      'Start your first 7-day challenge to begin earning bonus XP.';
+
+  @override
+  String get browseChallenges => 'Browse Challenges';
+
+  @override
+  String get challengesLoadError =>
+      'Could not load challenges. Pull to try again.';
+
+  @override
   String daysBonusXp(int days, int xp) {
     return '$days days · $xp bonus XP';
   }
 
   @override
   String get activeGoals => 'Active goals';
+
+  @override
+  String get todaysSuggestedGoals => 'Today\'s Suggested Goals';
+
+  @override
+  String get reminderBannerMessage =>
+      'You haven\'t completed today\'s goals yet.';
+
+  @override
+  String get dailyReminders => 'Daily reminders';
+
+  @override
+  String get enableDailyReminder => 'Enable daily reminder';
+
+  @override
+  String get reminderTime => 'Reminder time';
 
   @override
   String get recommendedChallenges => 'Recommended challenges';
@@ -215,6 +248,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get noActiveGoals =>
       'No active goals yet.\nTap + to create your first one.';
+
+  @override
+  String get noActiveGoalsTitle => 'No goals yet';
+
+  @override
+  String get noActiveGoalsDescription =>
+      'Create your first goal to start earning XP and building streaks.';
 
   @override
   String get goalsCompleted => 'Goals completed';
@@ -283,6 +323,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String levelLabel(int level) {
     return 'Level $level';
+  }
+
+  @override
+  String get levelUpTitle => 'Level Up!';
+
+  @override
+  String levelUpMessage(int level) {
+    return 'You reached level $level. Keep going!';
+  }
+
+  @override
+  String dailyXpAvailable(int xp) {
+    return 'Daily XP available: $xp';
   }
 
   @override

@@ -7,9 +7,11 @@ import '../../core/config/supabase_config.dart';
 import '../../core/locale/locale_controller.dart';
 import '../../core/ui/app_theme.dart';
 import '../../l10n/app_localizations.dart';
+import '../../state/providers.dart';
 import 'auth_controller.dart';
 import 'login_page.dart';
 import 'register_page.dart';
+import '../onboarding/onboarding_page.dart';
 
 /// Root gate: shows LoginPage when no session, else the main app (Dashboard shell).
 /// Listens to auth state changes. No business logic in this widget.
@@ -103,6 +105,56 @@ class AuthGate extends ConsumerWidget {
               '/login': (context) => const LoginPage(),
               '/register': (context) => const RegisterPage(),
             },
+          );
+        }
+        return _AuthenticatedGate(locale: locale);
+      },
+    );
+  }
+}
+
+/// When authenticated: load profile; if onboarding not completed show OnboardingPage, else show app.
+class _AuthenticatedGate extends ConsumerWidget {
+  const _AuthenticatedGate({required this.locale});
+
+  final Locale? locale;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profileAv = ref.watch(profileControllerProvider);
+
+    return profileAv.when(
+      loading: () => MaterialApp(
+        theme: AppTheme.dark,
+        darkTheme: AppTheme.dark,
+        locale: locale,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        ),
+      ),
+      error: (err, _) => MaterialApp(
+        theme: AppTheme.dark,
+        darkTheme: AppTheme.dark,
+        locale: locale,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Center(child: Text(err.toString())),
+        ),
+      ),
+      data: (profile) {
+        if (!profile.onboardingCompleted) {
+          return MaterialApp(
+            title: AppEnv.appName,
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.dark,
+            darkTheme: AppTheme.dark,
+            locale: locale,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const OnboardingPage(),
           );
         }
         return const XpireApp();

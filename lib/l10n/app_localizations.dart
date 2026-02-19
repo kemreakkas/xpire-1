@@ -410,6 +410,36 @@ abstract class AppLocalizations {
   /// **'No challenges right now. Create goals from the dashboard to get started.'**
   String get challengesEmpty;
 
+  /// No description provided for @challengesEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No challenges yet'**
+  String get challengesEmptyTitle;
+
+  /// No description provided for @challengesNoActiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No Active Challenges Yet'**
+  String get challengesNoActiveTitle;
+
+  /// No description provided for @challengesNoActiveSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start your first 7-day challenge to begin earning bonus XP.'**
+  String get challengesNoActiveSubtitle;
+
+  /// No description provided for @browseChallenges.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse Challenges'**
+  String get browseChallenges;
+
+  /// No description provided for @challengesLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load challenges. Pull to try again.'**
+  String get challengesLoadError;
+
   /// No description provided for @daysBonusXp.
   ///
   /// In en, this message translates to:
@@ -421,6 +451,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Active goals'**
   String get activeGoals;
+
+  /// No description provided for @todaysSuggestedGoals.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s Suggested Goals'**
+  String get todaysSuggestedGoals;
+
+  /// No description provided for @reminderBannerMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t completed today\'s goals yet.'**
+  String get reminderBannerMessage;
+
+  /// No description provided for @dailyReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily reminders'**
+  String get dailyReminders;
+
+  /// No description provided for @enableDailyReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable daily reminder'**
+  String get enableDailyReminder;
+
+  /// No description provided for @reminderTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder time'**
+  String get reminderTime;
 
   /// No description provided for @recommendedChallenges.
   ///
@@ -481,6 +541,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No active goals yet.\nTap + to create your first one.'**
   String get noActiveGoals;
+
+  /// No description provided for @noActiveGoalsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No goals yet'**
+  String get noActiveGoalsTitle;
+
+  /// No description provided for @noActiveGoalsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first goal to start earning XP and building streaks.'**
+  String get noActiveGoalsDescription;
 
   /// No description provided for @goalsCompleted.
   ///
@@ -607,6 +679,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Level {level}'**
   String levelLabel(int level);
+
+  /// No description provided for @levelUpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Level Up!'**
+  String get levelUpTitle;
+
+  /// No description provided for @levelUpMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You reached level {level}. Keep going!'**
+  String levelUpMessage(int level);
+
+  /// No description provided for @dailyXpAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily XP available: {xp}'**
+  String dailyXpAvailable(int xp);
 
   /// No description provided for @completedTodayCount.
   ///

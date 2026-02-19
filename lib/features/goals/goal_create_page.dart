@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import '../../core/services/analytics_service.dart';
 import '../../core/ui/nav_helpers.dart';
 import '../../core/ui/app_spacing.dart';
+import '../../core/ui/responsive.dart';
 import '../../core/ui/app_theme.dart';
 import '../../data/models/goal.dart';
 import '../../data/models/goal_template.dart';
@@ -28,6 +29,7 @@ class _GoalCreatePageState extends ConsumerState<GoalCreatePage> {
   GoalTemplate? _selectedTemplate;
   GoalCategory? _templateCategoryFilter;
   bool _pendingTemplateApplied = false;
+  bool _isSaving = false;
 
   @override
   void dispose() {
@@ -84,6 +86,7 @@ class _GoalCreatePageState extends ConsumerState<GoalCreatePage> {
               difficulty: _difficulty,
               selectedTemplate: _selectedTemplate,
               l10n: l10n,
+              isSaving: _isSaving,
               onCategoryChanged: (v) => setState(() => _category = v),
               onDifficultyChanged: (v) => setState(() => _difficulty = v),
               onSave: _saveGoal,
@@ -103,31 +106,47 @@ class _GoalCreatePageState extends ConsumerState<GoalCreatePage> {
 
   Future<void> _saveGoal() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
 
-    final xpService = ref.read(xpServiceProvider);
-    final title = _titleController.text.trim();
-    final now = DateTime.now();
-    final baseXp =
-        _selectedTemplate?.baseXp ?? xpService.earnedXpFor(_difficulty);
+    try {
+      final xpService = ref.read(xpServiceProvider);
+      final title = _titleController.text.trim();
+      final now = DateTime.now();
+      final baseXp =
+          _selectedTemplate?.baseXp ?? xpService.earnedXpFor(_difficulty);
 
-    final goal = Goal(
-      id: const Uuid().v4(),
-      title: title,
-      category: _category,
-      difficulty: _difficulty,
-      baseXp: baseXp,
-      isActive: true,
-      createdAt: now,
-    );
+      final goal = Goal(
+        id: const Uuid().v4(),
+        title: title,
+        category: _category,
+        difficulty: _difficulty,
+        baseXp: baseXp,
+        isActive: true,
+        createdAt: now,
+      );
 
-    await ref.read(goalsControllerProvider.notifier).addGoal(goal);
-    ref.read(analyticsServiceProvider).track(AnalyticsEvents.goalCreated, {
-      'category': goal.category.name,
-      'goal_id': goal.id,
-    });
-    setState(() => _selectedTemplate = null);
-    if (!context.mounted) return;
-    context.pop();
+      await ref.read(goalsControllerProvider.notifier).addGoal(goal);
+      ref.read(analyticsServiceProvider).track(AnalyticsEvents.goalCreated, {
+        'category': goal.category.name,
+        'goal_id': goal.id,
+      });
+      setState(() => _selectedTemplate = null);
+      if (!context.mounted) return;
+      context.go('/dashboard');
+    } catch (e, st) {
+      debugPrint('Create goal error: $e');
+      debugPrint('$st');
+      if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
+        final message = e is Exception ? '${l10n.somethingWentWrong}: ${e.toString()}' : l10n.somethingWentWrong;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 }
 
@@ -139,6 +158,7 @@ class _CustomFormTab extends StatelessWidget {
     required this.difficulty,
     required this.selectedTemplate,
     required this.l10n,
+    required this.isSaving,
     required this.onCategoryChanged,
     required this.onDifficultyChanged,
     required this.onSave,
@@ -150,86 +170,122 @@ class _CustomFormTab extends StatelessWidget {
   final GoalDifficulty difficulty;
   final GoalTemplate? selectedTemplate;
   final AppLocalizations l10n;
+  final bool isSaving;
   final ValueChanged<GoalCategory> onCategoryChanged;
   final ValueChanged<GoalDifficulty> onDifficultyChanged;
   final VoidCallback onSave;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.grid),
-      child: Form(
-        key: formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (selectedTemplate != null)
-              Card(
-                color: Theme.of(
-                  context,
-                ).colorScheme.primaryContainer.withValues(alpha: 0.3),
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.sm),
-                  child: Row(
-                    children: [
-                      Icon(Icons.flag, size: 20, color: AppTheme.accent),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: Text(
-                          l10n.fromTemplate(selectedTemplate!.title),
-                          style: Theme.of(context).textTheme.labelMedium,
-                        ),
+    final isWebWide = Responsive.isWebWide(context);
+    final formContent = Form(
+      key: formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (selectedTemplate != null)
+            Card(
+              color: Theme.of(
+                context,
+              ).colorScheme.primaryContainer.withValues(alpha: 0.3),
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                child: Row(
+                  children: [
+                    Icon(Icons.flag, size: 20, color: AppTheme.accent),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        l10n.fromTemplate(selectedTemplate!.title),
+                        style: Theme.of(context).textTheme.labelMedium,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            if (selectedTemplate != null) const SizedBox(height: AppSpacing.sm),
-            TextFormField(
-              controller: titleController,
-              textInputAction: TextInputAction.done,
-              decoration: InputDecoration(labelText: l10n.title),
-              validator: (v) {
-                final value = (v ?? '').trim();
-                if (value.isEmpty) return l10n.enterTitle;
-                if (value.length < 3) return l10n.keepLonger;
-                return null;
-              },
             ),
-            const SizedBox(height: AppSpacing.md),
-            DropdownButtonFormField<GoalCategory>(
-              value: category,
-              decoration: InputDecoration(labelText: l10n.category),
-              items: GoalCategory.values
-                  .map(
-                    (c) => DropdownMenuItem(
-                      value: c,
-                      child: Text(_categoryLabel(l10n, c)),
-                    ),
-                  )
-                  .toList(growable: false),
-              onChanged: (v) => onCategoryChanged(v ?? category),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            DropdownButtonFormField<GoalDifficulty>(
-              value: difficulty,
-              decoration: InputDecoration(labelText: l10n.difficulty),
-              items: GoalDifficulty.values
-                  .map(
-                    (d) => DropdownMenuItem(
-                      value: d,
-                      child: Text(_difficultyLabel(l10n, d)),
-                    ),
-                  )
-                  .toList(growable: false),
-              onChanged: (v) => onDifficultyChanged(v ?? difficulty),
-            ),
-            const Spacer(),
+          if (selectedTemplate != null) const SizedBox(height: AppSpacing.sm),
+          TextFormField(
+            controller: titleController,
+            textInputAction: TextInputAction.done,
+            decoration: InputDecoration(labelText: l10n.title),
+            validator: (v) {
+              final value = (v ?? '').trim();
+              if (value.isEmpty) return l10n.enterTitle;
+              if (value.length < 3) return l10n.keepLonger;
+              return null;
+            },
+          ),
+          const SizedBox(height: AppSpacing.md),
+          DropdownButtonFormField<GoalCategory>(
+            value: category,
+            decoration: InputDecoration(labelText: l10n.category),
+            items: GoalCategory.values
+                .map(
+                  (c) => DropdownMenuItem(
+                    value: c,
+                    child: Text(_categoryLabel(l10n, c)),
+                  ),
+                )
+                .toList(growable: false),
+            onChanged: (v) => onCategoryChanged(v ?? category),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          DropdownButtonFormField<GoalDifficulty>(
+            value: difficulty,
+            decoration: InputDecoration(labelText: l10n.difficulty),
+            items: GoalDifficulty.values
+                .map(
+                  (d) => DropdownMenuItem(
+                    value: d,
+                    child: Text(_difficultyLabel(l10n, d)),
+                  ),
+                )
+                .toList(growable: false),
+            onChanged: (v) => onDifficultyChanged(v ?? difficulty),
+          ),
+          const Spacer(),
+          if (isWebWide)
+            Align(
+              alignment: Alignment.centerRight,
+              child: SizedBox(
+                width: 180,
+                height: 52,
+                child: FilledButton(
+                  onPressed: isSaving ? null : onSave,
+                  child: isSaving
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(l10n.save),
+                ),
+              ),
+            )
+          else
             SizedBox(
               height: 52,
-              child: FilledButton(onPressed: onSave, child: Text(l10n.save)),
+              child: FilledButton(
+                onPressed: isSaving ? null : onSave,
+                child: isSaving
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(l10n.save),
+              ),
             ),
-          ],
+        ],
+      ),
+    );
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 600),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.grid),
+          child: formContent,
         ),
       ),
     );

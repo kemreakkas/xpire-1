@@ -2,11 +2,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/ui/app_spacing.dart';
 import '../core/ui/nav_helpers.dart';
 import 'package:hive/hive.dart';
 
 import '../app/app_shell.dart';
 import '../core/config/supabase_config.dart';
+import '../core/notifications/notification_service.dart';
 import '../core/services/analytics_service.dart';
 import '../core/services/xp_service.dart';
 import '../features/auth/auth_controller.dart';
@@ -82,6 +84,16 @@ final contentRepositoryProvider = Provider<ContentRepository>((ref) {
   return ContentRepository();
 });
 
+/// Challenge templates list (static content). Exposed as AsyncValue for loading/error/empty states.
+final challengesListProvider = FutureProvider<List<Challenge>>((ref) async {
+  try {
+    final content = ref.read(contentRepositoryProvider);
+    return content.getChallenges();
+  } catch (e) {
+    throw Exception('Failed to load challenges');
+  }
+});
+
 final challengeProgressRepositoryProvider =
     Provider<ChallengeProgressRepository>((ref) {
       return ChallengeProgressRepository(ref.watch(activeChallengeBoxProvider));
@@ -142,6 +154,10 @@ final analyticsServiceProvider = Provider<AnalyticsService>((ref) {
   return DefaultAnalyticsService();
 });
 final xpServiceProvider = Provider<XpService>((ref) => const XpService());
+
+final notificationServiceProvider = Provider<NotificationService>((ref) {
+  return NotificationService();
+});
 
 // Computed (UI-friendly)
 final requiredXpProvider = Provider<int?>((ref) {
@@ -423,7 +439,7 @@ class _RouterErrorPage extends StatelessWidget {
         automaticallyImplyLeading: shouldShowAppBarLeading(context),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Text(error?.toString() ?? l10n.unknownRoutingError),
       ),
     );

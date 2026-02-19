@@ -1,11 +1,13 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/supabase_config.dart';
 import '../../core/services/xp_service.dart';
+import '../../core/ui/app_radius.dart';
 import '../../core/ui/app_spacing.dart';
-import '../../core/ui/nav_helpers.dart';
 import '../../core/ui/app_theme.dart';
+import '../../core/ui/nav_helpers.dart';
 import '../../core/ui/responsive.dart';
 import '../../core/utils/date_key.dart';
 import '../../core/utils/date_only.dart';
@@ -19,6 +21,12 @@ import '../../state/providers.dart';
 
 bool _hasActiveFromModel(ChallengeProgress? p) =>
     p != null && !p.isCompleted && p.failedAt == null;
+
+/// On web: wrap card in hover effect (subtle elevation). On mobile: return as-is.
+Widget _maybeWebHoverCard(BuildContext context, {required Widget child}) {
+  if (!Responsive.isWebWide(context)) return child;
+  return _WebHoverCard(child: child);
+}
 
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
@@ -105,50 +113,80 @@ class _DashboardContent extends ConsumerWidget {
     final isWebWide = Responsive.isWebWide(context);
     final spacing = isWebWide ? AppSpacing.lg : AppSpacing.md;
 
-    Widget levelCard = Card(
-      child: Padding(
-        padding: EdgeInsets.all(spacing),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  l10n.levelLabel(profile.level),
-                  style: Theme.of(context).textTheme.titleLarge,
+    final dailyXpAvailable = goals
+        .where((g) => !completedTodayIds.contains(g.id))
+        .fold<int>(0, (sum, g) => sum + g.baseXp);
+
+    final showWebReminderBanner =
+        kIsWeb &&
+        profile.reminderEnabled &&
+        (profile.lastActiveDate.millisecondsSinceEpoch == 0 ||
+            !isSameDay(profile.lastActiveDate, today));
+
+    Widget levelCard = _maybeWebHoverCard(
+      context,
+      child: Card(
+        child: Padding(
+          padding: EdgeInsets.all(spacing),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    l10n.levelLabel(profile.level),
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const Spacer(),
+                  Text(
+                    '${profile.currentXp} / $requiredXp XP',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: progress.clamp(0.0, 1.0)),
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, value, _) =>
+                      LinearProgressIndicator(value: value),
                 ),
-                const Spacer(),
+              ),
+              if (dailyXpAvailable > 0) ...[
+                const SizedBox(height: AppSpacing.sm),
                 Text(
-                  '${profile.currentXp} / $requiredXp XP',
-                  style: Theme.of(context).textTheme.labelLarge,
+                  l10n.dailyXpAvailable(dailyXpAvailable),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelMedium?.copyWith(color: AppTheme.accent),
                 ),
               ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(999),
-              child: LinearProgressIndicator(value: progress.clamp(0, 1)),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Row(
-              children: [
-                _StatPill(
-                  label: l10n.streak,
-                  value: '${profile.streak}d',
-                  icon: Icons.local_fire_department_outlined,
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                _StatPill(
-                  label: l10n.totalXp,
-                  value: '${profile.totalXp}',
-                  icon: Icons.auto_awesome_outlined,
-                ),
-              ],
-            ),
-          ],
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                children: [
+                  _StatPill(
+                    label: l10n.streak,
+                    value: '${profile.streak}d',
+                    icon: Icons.local_fire_department_outlined,
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  _StatPill(
+                    label: l10n.totalXp,
+                    value: '${profile.totalXp}',
+                    icon: Icons.auto_awesome_outlined,
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
+
+    final suggestedGoals = goals.take(3).toList(growable: false);
 
     if (isWebWide) {
       return Row(
@@ -160,9 +198,18 @@ class _DashboardContent extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  if (showWebReminderBanner) ...[
+                    _WebReminderBanner(l10n: l10n),
+                    SizedBox(height: spacing),
+                  ],
                   levelCard,
                   SizedBox(height: spacing),
                   _ActiveChallengeSection(),
+                  SizedBox(height: spacing),
+                  _TodaysSuggestedGoalsSection(
+                    goals: suggestedGoals,
+                    completedTodayIds: completedTodayIds,
+                  ),
                 ],
               ),
             ),
@@ -217,9 +264,18 @@ class _DashboardContent extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (showWebReminderBanner) ...[
+          _WebReminderBanner(l10n: l10n),
+          SizedBox(height: spacing),
+        ],
         levelCard,
         SizedBox(height: spacing),
         _ActiveChallengeSection(),
+        SizedBox(height: spacing),
+        _TodaysSuggestedGoalsSection(
+          goals: suggestedGoals,
+          completedTodayIds: completedTodayIds,
+        ),
         SizedBox(height: spacing),
         _RecommendedChallengesSection(),
         SizedBox(height: spacing),
@@ -242,6 +298,41 @@ class _DashboardContent extends ConsumerWidget {
                     return _GoalCard(goal: goal, doneToday: doneToday);
                   },
                 ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TodaysSuggestedGoalsSection extends ConsumerWidget {
+  const _TodaysSuggestedGoalsSection({
+    required this.goals,
+    required this.completedTodayIds,
+  });
+
+  final List<Goal> goals;
+  final Set<String> completedTodayIds;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (goals.isEmpty) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          l10n.todaysSuggestedGoals,
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        ...goals.map(
+          (goal) => Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: _GoalCard(
+              goal: goal,
+              doneToday: completedTodayIds.contains(goal.id),
+            ),
+          ),
         ),
       ],
     );
@@ -589,6 +680,31 @@ class _GoalCard extends ConsumerWidget {
                       ScaffoldMessenger.of(
                         context,
                       ).showSnackBar(SnackBar(content: Text(msg)));
+                      if (result.leveledUp && context.mounted) {
+                        showDialog<void>(
+                          context: context,
+                          barrierDismissible: true,
+                          builder: (ctx) => AlertDialog(
+                            title: Row(
+                              children: [
+                                Icon(
+                                  Icons.auto_awesome,
+                                  color: AppTheme.accent,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(l10n.levelUpTitle),
+                              ],
+                            ),
+                            content: Text(l10n.levelUpMessage(result.newLevel)),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(ctx).pop(),
+                                child: Text(l10n.save),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
                     },
               child: Text(doneToday ? l10n.done : l10n.complete),
             ),
@@ -613,7 +729,10 @@ class _StatPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm + AppSpacing.xs,
+        vertical: AppSpacing.sm + 2,
+      ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -622,7 +741,7 @@ class _StatPill extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 18),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Text('$label: ', style: Theme.of(context).textTheme.labelLarge),
           Text(value, style: Theme.of(context).textTheme.labelLarge),
         ],
@@ -639,12 +758,82 @@ class _Chip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm + 2,
+        vertical: AppSpacing.sm - 2,
+      ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Text(text, style: Theme.of(context).textTheme.labelMedium),
+    );
+  }
+}
+
+class _WebHoverCard extends StatefulWidget {
+  const _WebHoverCard({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_WebHoverCard> createState() => _WebHoverCardState();
+}
+
+class _WebHoverCardState extends State<_WebHoverCard> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: AnimatedPhysicalModel(
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+        shape: BoxShape.rectangle,
+        elevation: _hover ? 4 : 0,
+        color: Colors.transparent,
+        shadowColor: Colors.black26,
+        borderRadius: AppRadius.lgRadius,
+        child: widget.child,
+      ),
+    );
+  }
+}
+
+class _WebReminderBanner extends StatelessWidget {
+  const _WebReminderBanner({required this.l10n});
+
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      borderRadius: AppRadius.mdRadius,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.notifications_active_outlined,
+              size: 20,
+              color: AppTheme.accent,
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text(
+                l10n.reminderBannerMessage,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -655,11 +844,47 @@ class _EmptyGoals extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     return Center(
-      child: Text(
-        l10n.noActiveGoals,
-        textAlign: TextAlign.center,
-        style: Theme.of(context).textTheme.bodyMedium,
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.flag_outlined,
+                  size: 48,
+                  color: theme.colorScheme.outline,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  l10n.noActiveGoalsTitle,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  l10n.noActiveGoalsDescription,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                FilledButton.icon(
+                  onPressed: () => goOrPush(context, '/goals/create'),
+                  icon: const Icon(Icons.add, size: 20),
+                  label: Text(l10n.newGoal),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

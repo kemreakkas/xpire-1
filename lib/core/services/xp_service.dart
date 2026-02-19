@@ -17,15 +17,23 @@ class XpService {
 
   static const int freezeGrantDays = 7;
 
+  /// XP per difficulty (gamification display).
+  static const int xpEasy = 10;
+  static const int xpMedium = 25;
+  static const int xpHard = 50;
+
+  /// Level up every 250 XP.
+  static const int xpPerLevel = 250;
+
   int earnedXpFor(GoalDifficulty difficulty) {
     return switch (difficulty) {
-      GoalDifficulty.easy => 10,
-      GoalDifficulty.medium => 25,
-      GoalDifficulty.hard => 50,
+      GoalDifficulty.easy => xpEasy,
+      GoalDifficulty.medium => xpMedium,
+      GoalDifficulty.hard => xpHard,
     };
   }
 
-  int requiredXpForLevel(int level) => 100 + (level * 40);
+  int requiredXpForLevel(int level) => xpPerLevel;
 
   /// Grant bonus XP (e.g. challenge completion). Applies level-up logic.
   UserProfile grantBonusXp(UserProfile profile, int amount) {
