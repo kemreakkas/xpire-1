@@ -64,14 +64,15 @@ class _CommunityChallengeCreatePageState
     } on DailyChallengeLimitException {
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.dailyChallengeLimitReached)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.dailyChallengeLimitReached)));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(AppLocalizations.of(context)!.somethingWentWrong)),
+          content: Text(AppLocalizations.of(context)!.somethingWentWrong),
+        ),
       );
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
@@ -120,35 +121,34 @@ class _CommunityChallengeCreatePageState
                     ),
                     maxLines: 3,
                     validator: (v) {
-                      if ((v ?? '').trim().isEmpty) return l10n.enterDescription;
+                      if ((v ?? '').trim().isEmpty)
+                        return l10n.enterDescription;
                       return null;
                     },
                   ),
                   const SizedBox(height: AppSpacing.md),
                   DropdownButtonFormField<int>(
-                    value: _durationDays,
-                    decoration: InputDecoration(
-                      labelText: l10n.durationDays,
-                    ),
+                    initialValue: _durationDays,
+                    decoration: InputDecoration(labelText: l10n.durationDays),
                     items: [7, 14, 21, 30]
-                        .map((d) => DropdownMenuItem(
-                              value: d,
-                              child: Text('$d days'),
-                            ))
+                        .map(
+                          (d) => DropdownMenuItem(
+                            value: d,
+                            child: Text('$d days'),
+                          ),
+                        )
                         .toList(),
                     onChanged: (v) => setState(() => _durationDays = v ?? 7),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   DropdownButtonFormField<int>(
-                    value: _rewardXp,
-                    decoration: InputDecoration(
-                      labelText: l10n.rewardXp,
-                    ),
+                    initialValue: _rewardXp,
+                    decoration: InputDecoration(labelText: l10n.rewardXp),
                     items: [50, 100, 150, 200, 250]
-                        .map((x) => DropdownMenuItem(
-                              value: x,
-                              child: Text('$x XP'),
-                            ))
+                        .map(
+                          (x) =>
+                              DropdownMenuItem(value: x, child: Text('$x XP')),
+                        )
                         .toList(),
                     onChanged: (v) => setState(() => _rewardXp = v ?? 100),
                   ),

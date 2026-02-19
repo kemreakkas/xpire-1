@@ -15,6 +15,7 @@ if [ ! -x "$FLUTTER" ]; then
 fi
 
 "$FLUTTER" config --enable-web
+"$FLUTTER" --version
 "$FLUTTER" pub get
 
 # Build must have SUPABASE_URL and SUPABASE_ANON_KEY (Vercel Environment Variables)
@@ -23,9 +24,14 @@ if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
   exit 1
 fi
 
-"$FLUTTER" build web --release \
+echo "Building Flutter web (release)..."
+if ! "$FLUTTER" build web --release \
   --dart-define=SUPABASE_URL="$SUPABASE_URL" \
-  --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+  --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"; then
+  echo "Flutter build failed. Check the log above for the first error."
+  exit 1
+fi
 
 # SPA: serve app for any path so browser refresh on /dashboard etc. does not 404
 cp build/web/index.html build/web/404.html
+echo "Build finished successfully."

@@ -254,7 +254,7 @@ class _HoverLiftCardState extends State<_HoverLiftCard> {
         duration: const Duration(milliseconds: 150),
         curve: Curves.easeOut,
         transform: Matrix4.identity()
-          ..translateByDouble(0.0, _hover ? -2.0 : 0.0, 0.0),
+          ..translateByDouble(0.0, _hover ? -2.0 : 0.0, 0.0, 1.0),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           child: widget.child,
