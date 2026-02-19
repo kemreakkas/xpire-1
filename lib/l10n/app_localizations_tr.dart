@@ -18,6 +18,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get createAccount => 'Hesap oluştur';
 
   @override
+  String get dontHaveAccount => 'Hesabınız yok mu? ';
+
+  @override
   String get email => 'E-posta';
 
   @override
@@ -190,10 +193,55 @@ class AppLocalizationsTr extends AppLocalizations {
   String get activeChallengesSection => 'Aktif Maceralar';
 
   @override
+  String get myActiveChallengesSection => 'Aktif Maceralarım';
+
+  @override
+  String get communityChallengesSection => 'Topluluk Maceraları';
+
+  @override
   String get startNewChallengeSection => 'Yeni Macera Başlat';
 
   @override
   String get scrollToTemplates => 'Şablonlara git';
+
+  @override
+  String participantsCount(int count) {
+    return '$count katılımcı';
+  }
+
+  @override
+  String get joinChallenge => 'Katıl';
+
+  @override
+  String get joined => 'Katıldın';
+
+  @override
+  String get createChallenge => 'Macera Oluştur';
+
+  @override
+  String get challengeCreated => 'Macera oluşturuldu.';
+
+  @override
+  String get challengeDescription => 'Açıklama';
+
+  @override
+  String get challengeDescriptionHint => 'Macera hakkında kısa açıklama';
+
+  @override
+  String get enterDescription => 'Bir açıklama girin';
+
+  @override
+  String get durationDays => 'Süre (gün)';
+
+  @override
+  String get rewardXp => 'Ödül XP';
+
+  @override
+  String get dailyChallengeLimitReached =>
+      'Günlük macera oluşturma limitine ulaştınız (günde 2).';
+
+  @override
+  String get dailyLimitTooltip => 'Günlük limit doldu. Yarın tekrar deneyin.';
 
   @override
   String get startChallengeButton => 'Macerayı Başlat';
@@ -212,6 +260,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get todaysSuggestedGoals => 'Bugünün Önerilen Hedefleri';
+
+  @override
+  String get todaysAIPlan => 'Bugünün AI Planı';
 
   @override
   String get reminderBannerMessage =>

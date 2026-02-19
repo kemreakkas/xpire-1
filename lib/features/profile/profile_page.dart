@@ -5,9 +5,13 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../core/config/supabase_config.dart';
 import '../../core/locale/locale_controller.dart';
 import '../../core/ui/app_spacing.dart';
+import '../../core/ui/app_theme.dart';
+import '../../core/ui/avatar_aura.dart';
+import '../../core/ui/gamification.dart';
 import '../../core/ui/nav_helpers.dart';
 import '../../core/ui/responsive.dart';
 import '../../data/models/goal.dart';
+import '../../data/models/user_profile.dart';
 import '../../features/premium/premium_page.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/providers.dart';
@@ -97,52 +101,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  _buildProfileHeader(context, p, l10n),
+                  const SizedBox(height: AppSpacing.lg),
                   _buildLanguageSection(context, l10n, currentLocale),
                   const SizedBox(height: AppSpacing.sm),
                   _buildEditableSection(context, p, l10n),
                   const SizedBox(height: AppSpacing.sm),
                   _buildReminderSection(context, p, l10n),
                   const SizedBox(height: AppSpacing.lg),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.level,
-                            style: Theme.of(context).textTheme.labelLarge,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${p.level}',
-                            style: Theme.of(context).textTheme.headlineMedium,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.totalXp,
-                            style: Theme.of(context).textTheme.labelLarge,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${p.totalXp}',
-                            style: Theme.of(context).textTheme.headlineMedium,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(AppSpacing.md),
@@ -314,6 +280,55 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 }
               },
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileHeader(
+    BuildContext context,
+    UserProfile p,
+    AppLocalizations l10n,
+  ) {
+    final xpService = ref.read(xpServiceProvider);
+    final requiredXp = xpService.requiredXpForLevel(p.level);
+    final progress = requiredXp == 0 ? 0.0 : p.currentXp / requiredXp;
+    return premiumCard(
+      context: context,
+      enableHoverLift: false,
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                AvatarAura(level: p.level, size: 72, showGlow: true),
+                const SizedBox(width: AppSpacing.lg),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.levelLabel(p.level),
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 4),
+                      StreakPill(days: p.streak),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        '${p.totalXp} ${l10n.totalXp}',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            XpProgressBar(progress: progress, height: 6),
           ],
         ),
       ),

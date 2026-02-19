@@ -7,6 +7,8 @@ import '../../core/services/xp_service.dart';
 import '../../core/ui/app_radius.dart';
 import '../../core/ui/app_spacing.dart';
 import '../../core/ui/app_theme.dart';
+import '../../core/ui/gamification.dart';
+import '../../core/ui/level_up_overlay.dart';
 import '../../core/ui/nav_helpers.dart';
 import '../../core/ui/responsive.dart';
 import '../../core/utils/date_key.dart';
@@ -21,12 +23,6 @@ import '../../state/providers.dart';
 
 bool _hasActiveFromModel(ChallengeProgress? p) =>
     p != null && !p.isCompleted && p.failedAt == null;
-
-/// On web: wrap card in hover effect (subtle elevation). On mobile: return as-is.
-Widget _maybeWebHoverCard(BuildContext context, {required Widget child}) {
-  if (!Responsive.isWebWide(context)) return child;
-  return _WebHoverCard(child: child);
-}
 
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
@@ -123,65 +119,88 @@ class _DashboardContent extends ConsumerWidget {
         (profile.lastActiveDate.millisecondsSinceEpoch == 0 ||
             !isSameDay(profile.lastActiveDate, today));
 
-    Widget levelCard = _maybeWebHoverCard(
-      context,
-      child: Card(
-        child: Padding(
-          padding: EdgeInsets.all(spacing),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    l10n.levelLabel(profile.level),
-                    style: Theme.of(context).textTheme.titleLarge,
+    final rankLabel = profile.focusCategory != null
+        ? _rankLabelFromCategory(l10n, profile.focusCategory!)
+        : null;
+
+    Widget levelCard = premiumCard(
+      context: context,
+      enableHoverLift: true,
+      child: Padding(
+        padding: EdgeInsets.all(spacing),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                LevelBadge(level: profile.level, size: 44),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${profile.currentXp} / $requiredXp XP',
+                        style: Theme.of(context).textTheme.labelLarge,
+                      ),
+                      if (rankLabel != null) ...[
+                        const SizedBox(height: 2),
+                        RankLabel(label: rankLabel),
+                      ],
+                    ],
                   ),
-                  const Spacer(),
-                  Text(
-                    '${profile.currentXp} / $requiredXp XP',
-                    style: Theme.of(context).textTheme.labelLarge,
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(999),
-                child: TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0, end: progress.clamp(0.0, 1.0)),
-                  duration: const Duration(milliseconds: 500),
-                  curve: Curves.easeOutCubic,
-                  builder: (context, value, _) =>
-                      LinearProgressIndicator(value: value),
-                ),
-              ),
-              if (dailyXpAvailable > 0) ...[
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  l10n.dailyXpAvailable(dailyXpAvailable),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.labelMedium?.copyWith(color: AppTheme.accent),
                 ),
               ],
-              const SizedBox(height: AppSpacing.md),
-              Row(
-                children: [
-                  _StatPill(
-                    label: l10n.streak,
-                    value: '${profile.streak}d',
-                    icon: Icons.local_fire_department_outlined,
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  _StatPill(
-                    label: l10n.totalXp,
-                    value: '${profile.totalXp}',
-                    icon: Icons.auto_awesome_outlined,
-                  ),
-                ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            XpProgressBar(progress: progress, height: 6),
+            if (dailyXpAvailable > 0) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                l10n.dailyXpAvailable(dailyXpAvailable),
+                style: Theme.of(
+                  context,
+                ).textTheme.labelMedium?.copyWith(color: AppTheme.accent),
               ),
             ],
-          ),
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              children: [
+                StreakPill(days: profile.streak),
+                const SizedBox(width: AppSpacing.sm),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm + 4,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    color: AppTheme.hoverBackground,
+                    border: Border.all(
+                      color: AppTheme.accent.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.workspace_premium_rounded,
+                        size: 18,
+                        color: AppTheme.accent,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${profile.totalXp} XP',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -203,6 +222,8 @@ class _DashboardContent extends ConsumerWidget {
                     SizedBox(height: spacing),
                   ],
                   levelCard,
+                  SizedBox(height: spacing),
+                  _TodaysAIPlanSection(),
                   SizedBox(height: spacing),
                   _ActiveChallengeSection(),
                   SizedBox(height: spacing),
@@ -270,6 +291,8 @@ class _DashboardContent extends ConsumerWidget {
         ],
         levelCard,
         SizedBox(height: spacing),
+        _TodaysAIPlanSection(),
+        SizedBox(height: spacing),
         _ActiveChallengeSection(),
         SizedBox(height: spacing),
         _TodaysSuggestedGoalsSection(
@@ -300,6 +323,63 @@ class _DashboardContent extends ConsumerWidget {
                 ),
         ),
       ],
+    );
+  }
+}
+
+class _TodaysAIPlanSection extends ConsumerWidget {
+  const _TodaysAIPlanSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final planAv = ref.watch(todaySmartPlanProvider);
+    final l10n = AppLocalizations.of(context)!;
+    return planAv.when(
+      data: (plan) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.todaysAIPlan,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Material(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: AppRadius.mdRadius,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.sm,
+                ),
+                child: Text(
+                  plan.motivationMessage,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
+              children: plan.goalTemplates.map((t) {
+                return ActionChip(
+                  label: Text(
+                    '${t.title} · ${t.baseXp} XP',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  onPressed: () {
+                    ref.read(pendingTemplateIdProvider.notifier).set(t.id);
+                    goOrPush(context, '/goals/create');
+                  },
+                );
+              }).toList(),
+            ),
+          ],
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 }
@@ -378,7 +458,7 @@ class _ActiveChallengeSection extends ConsumerWidget {
                     Row(
                       children: [
                         Icon(
-                          Icons.emoji_events_outlined,
+                          Icons.workspace_premium_outlined,
                           size: 20,
                           color: AppTheme.accent,
                         ),
@@ -452,7 +532,7 @@ class _ActiveChallengeSection extends ConsumerWidget {
               Row(
                 children: [
                   Icon(
-                    Icons.emoji_events_outlined,
+                    Icons.workspace_premium_outlined,
                     size: 20,
                     color: AppTheme.accent,
                   ),
@@ -541,7 +621,7 @@ class _RecommendedChallengesSection extends ConsumerWidget {
               final ch = challenges[index];
               return ActionChip(
                 avatar: Icon(
-                  Icons.emoji_events_outlined,
+                  Icons.workspace_premium_outlined,
                   size: 18,
                   color: AppTheme.accent,
                 ),
@@ -611,7 +691,7 @@ class _StartChallengeCta extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     return OutlinedButton.icon(
       onPressed: () => goOrPush(context, '/challenges'),
-      icon: const Icon(Icons.emoji_events_outlined, size: 20),
+      icon: const Icon(Icons.workspace_premium_outlined, size: 20),
       label: Text(l10n.startChallenge),
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -681,70 +761,13 @@ class _GoalCard extends ConsumerWidget {
                         context,
                       ).showSnackBar(SnackBar(content: Text(msg)));
                       if (result.leveledUp && context.mounted) {
-                        showDialog<void>(
-                          context: context,
-                          barrierDismissible: true,
-                          builder: (ctx) => AlertDialog(
-                            title: Row(
-                              children: [
-                                Icon(
-                                  Icons.auto_awesome,
-                                  color: AppTheme.accent,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(l10n.levelUpTitle),
-                              ],
-                            ),
-                            content: Text(l10n.levelUpMessage(result.newLevel)),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(ctx).pop(),
-                                child: Text(l10n.save),
-                              ),
-                            ],
-                          ),
-                        );
+                        showLevelUpOverlay(context, newLevel: result.newLevel);
                       }
                     },
               child: Text(doneToday ? l10n.done : l10n.complete),
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _StatPill extends StatelessWidget {
-  const _StatPill({
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
-
-  final String label;
-  final String value;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm + AppSpacing.xs,
-        vertical: AppSpacing.sm + 2,
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 18),
-          const SizedBox(width: AppSpacing.sm),
-          Text('$label: ', style: Theme.of(context).textTheme.labelLarge),
-          Text(value, style: Theme.of(context).textTheme.labelLarge),
-        ],
       ),
     );
   }
@@ -767,37 +790,6 @@ class _Chip extends StatelessWidget {
         border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Text(text, style: Theme.of(context).textTheme.labelMedium),
-    );
-  }
-}
-
-class _WebHoverCard extends StatefulWidget {
-  const _WebHoverCard({required this.child});
-
-  final Widget child;
-
-  @override
-  State<_WebHoverCard> createState() => _WebHoverCardState();
-}
-
-class _WebHoverCardState extends State<_WebHoverCard> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: AnimatedPhysicalModel(
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOut,
-        shape: BoxShape.rectangle,
-        elevation: _hover ? 4 : 0,
-        color: Colors.transparent,
-        shadowColor: Colors.black26,
-        borderRadius: AppRadius.lgRadius,
-        child: widget.child,
-      ),
     );
   }
 }
@@ -908,6 +900,25 @@ class _Error extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(child: Text(error));
   }
+}
+
+String _rankLabelFromCategory(AppLocalizations l10n, GoalCategory c) {
+  final name = switch (c) {
+    GoalCategory.fitness => l10n.fitness,
+    GoalCategory.study => l10n.study,
+    GoalCategory.work => l10n.work,
+    GoalCategory.focus => l10n.focus,
+    GoalCategory.mind => l10n.mind,
+    GoalCategory.health => l10n.health,
+    GoalCategory.finance => l10n.finance,
+    GoalCategory.selfGrowth => l10n.selfGrowth,
+    GoalCategory.general => l10n.general,
+    GoalCategory.digitalDetox => l10n.digitalDetox,
+    GoalCategory.social => l10n.social,
+    GoalCategory.creativity => l10n.creativity,
+    GoalCategory.discipline => l10n.discipline,
+  };
+  return '$name Rank';
 }
 
 String _categoryLabel(AppLocalizations l10n, GoalCategory c) {

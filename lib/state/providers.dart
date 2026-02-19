@@ -18,6 +18,8 @@ import '../features/dashboard/dashboard_page.dart';
 import '../features/goals/goal_create_page.dart';
 import '../features/challenges/challenge_list_page.dart';
 import '../features/challenges/challenge_detail_page.dart';
+import '../features/challenges/community_challenge_create_page.dart';
+import '../features/onboarding/onboarding_page.dart';
 import '../features/premium/premium_page.dart';
 import '../features/profile/profile_page.dart';
 import '../features/stats/stats_page.dart';
@@ -26,12 +28,16 @@ import '../l10n/app_localizations.dart';
 import '../data/content/content_repository.dart';
 import '../data/models/active_challenge.dart';
 import '../data/models/challenge.dart';
+import '../data/models/challenge_participant.dart';
+import '../data/models/community_challenge.dart';
 import '../data/models/goal.dart';
 import '../data/models/goal_completion.dart';
 import '../data/models/stats.dart';
 import '../data/models/user_profile.dart';
 import '../data/repositories/challenge_progress_repository.dart';
 import '../data/repositories/supabase_challenge_progress_repository.dart';
+import '../data/repositories/supabase_challenge_participants_repository.dart';
+import '../data/repositories/supabase_community_challenges_repository.dart';
 import '../data/repositories/supabase_completion_repository.dart';
 import '../data/repositories/supabase_goal_repository.dart';
 import '../data/repositories/supabase_profile_repository.dart';
@@ -41,6 +47,7 @@ import 'controllers/completions_controller.dart';
 import 'controllers/goal_actions_controller.dart';
 import 'controllers/goals_controller.dart';
 import 'controllers/profile_controller.dart';
+export 'controllers/today_smart_plan_controller.dart' show todaySmartPlanProvider;
 
 // Hive boxes (injected from main.dart)
 final profileBoxProvider = Provider<Box<UserProfile>>((ref) {
@@ -103,6 +110,66 @@ final supabaseChallengeProgressRepositoryProvider =
     Provider<SupabaseChallengeProgressRepository>((ref) {
       return SupabaseChallengeProgressRepository();
     });
+
+final supabaseCommunityChallengesRepositoryProvider =
+    Provider<SupabaseCommunityChallengesRepository>((ref) {
+      return SupabaseCommunityChallengesRepository();
+    });
+
+final supabaseChallengeParticipantsRepositoryProvider =
+    Provider<SupabaseChallengeParticipantsRepository>((ref) {
+      return SupabaseChallengeParticipantsRepository();
+    });
+
+/// My active community challenge participants (challenge_participants where is_completed = false).
+final myActiveParticipantsProvider = FutureProvider<List<ChallengeParticipant>>((ref) async {
+  if (!SupabaseConfig.isConfigured) return [];
+  final uid = ref.watch(authUserIdProvider);
+  if (uid == null) return [];
+  final repo = ref.read(supabaseChallengeParticipantsRepositoryProvider);
+  return repo.listMyActive(uid);
+});
+
+/// My active challenges with full challenge details (for Section 1).
+final myActiveChallengesWithDetailsProvider = FutureProvider<List<({ChallengeParticipant p, CommunityChallenge c})>>((ref) async {
+  final participants = await ref.watch(myActiveParticipantsProvider.future);
+  if (participants.isEmpty) return [];
+  final repo = ref.read(supabaseCommunityChallengesRepositoryProvider);
+  final ids = participants.map((e) => e.challengeId).toSet().toList();
+  final map = await repo.getByIds(ids);
+  return [
+    for (final p in participants)
+      if (map.containsKey(p.challengeId)) (p: p, c: map[p.challengeId]!),
+  ];
+});
+
+/// Number of community challenges the current user has created today (UTC). Used to enforce daily limit (max 2).
+final challengesCreatedTodayCountProvider = FutureProvider<int>((ref) async {
+  if (!SupabaseConfig.isConfigured) return 0;
+  final uid = ref.watch(authUserIdProvider);
+  if (uid == null) return 0;
+  final repo = ref.read(supabaseCommunityChallengesRepositoryProvider);
+  return repo.countCreatedTodayByUser(uid);
+});
+
+/// Community (public) challenges with participant count and hasJoined.
+final communityChallengesWithMetaProvider = FutureProvider<List<({CommunityChallenge challenge, int participantCount, bool hasJoined})>>((ref) async {
+  if (!SupabaseConfig.isConfigured) return [];
+  final challengesRepo = ref.read(supabaseCommunityChallengesRepositoryProvider);
+  final participantsRepo = ref.read(supabaseChallengeParticipantsRepositoryProvider);
+  final uid = ref.watch(authUserIdProvider);
+  final list = await challengesRepo.listPublic();
+  if (list.isEmpty) return [];
+  final ids = list.map((e) => e.id).toList();
+  final counts = await participantsRepo.getParticipantCounts(ids);
+  final result = <({CommunityChallenge challenge, int participantCount, bool hasJoined})>[];
+  for (final c in list) {
+    final count = counts[c.id] ?? 0;
+    final hasJoined = uid != null ? await participantsRepo.hasJoined(uid, c.id) : false;
+    result.add((challenge: c, participantCount: count, hasJoined: hasJoined));
+  }
+  return result;
+});
 
 final challengeEngineProvider = Provider<ChallengeEngine>((ref) {
   return ChallengeEngine(
@@ -342,22 +409,56 @@ final statsProvider = Provider<AsyncValue<Stats>>((ref) {
   );
 });
 
-// Router
+// Router — Auth routing: login first; then profile exists → dashboard, else → onboarding.
 final goRouterProvider = Provider<GoRouter>((ref) {
   final isAuth = ref.watch(isAuthenticatedProvider);
   final hasConfig = SupabaseConfig.isConfigured;
+  final profileAsync = ref.watch(profileControllerProvider);
 
-  // When used from AuthGate we are always authenticated; start at dashboard.
+  // Login is always the first screen when Supabase is configured.
+  final initialLocation = hasConfig ? '/login' : '/dashboard';
+
   return GoRouter(
-    initialLocation: '/dashboard',
+    initialLocation: initialLocation,
     redirect: (context, state) {
       final path = state.matchedLocation;
       final onAuthScreen = path == '/login' || path == '/register';
+
       if (!hasConfig) {
-        return null; // no redirect when Supabase not configured
+        return null; // no redirect when Supabase not configured (offline)
       }
-      if (isAuth && onAuthScreen) return '/dashboard';
-      if (!isAuth && !onAuthScreen) return '/login';
+
+      // 1. Not authenticated → /login only.
+      if (!isAuth) {
+        if (onAuthScreen) return null;
+        return '/login';
+      }
+
+      // 2. Authenticated: decide by profile (users table / onboarding_completed).
+      final profile = profileAsync.asData?.value;
+      final profileLoading = profileAsync.isLoading;
+      final profileExistsAndComplete =
+          profile != null && profile.onboardingCompleted;
+
+      // 2a. Do NOT allow direct access to onboarding if profile already exists (onboarding completed).
+      if (path == '/onboarding') {
+        if (profileExistsAndComplete) return '/dashboard';
+        if (profileLoading) return null;
+        return null;
+      }
+
+      // 2b. Just left login/register: send to onboarding or dashboard by profile.
+      if (onAuthScreen) {
+        if (profileLoading) return '/dashboard';
+        if (profileExistsAndComplete) return '/dashboard';
+        return '/onboarding';
+      }
+
+      // 2c. Protected routes: profile must exist and onboarding completed, else onboarding.
+      if (profileLoading) return null;
+      if (profile != null && !profile.onboardingCompleted) {
+        return '/onboarding';
+      }
       return null;
     },
     routes: [
@@ -370,6 +471,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '/register',
         pageBuilder: (context, state) =>
             buildAppPage(context, state, const RegisterPage()),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        pageBuilder: (context, state) =>
+            buildAppPage(context, state, const OnboardingPage()),
       ),
       ShellRoute(
         builder: (context, state, child) =>
@@ -385,6 +491,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) =>
                 buildAppPage(context, state, const ChallengeListPage()),
             routes: [
+              GoRoute(
+                path: 'create',
+                pageBuilder: (context, state) => buildAppPage(
+                    context, state, const CommunityChallengeCreatePage()),
+              ),
               GoRoute(
                 path: ':id',
                 pageBuilder: (context, state) {

@@ -18,6 +18,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createAccount => 'Create account';
 
   @override
+  String get dontHaveAccount => 'Don\'t have an account? ';
+
+  @override
   String get email => 'Email';
 
   @override
@@ -190,10 +193,55 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activeChallengesSection => 'Active Challenges';
 
   @override
+  String get myActiveChallengesSection => 'My Active Challenges';
+
+  @override
+  String get communityChallengesSection => 'Community Challenges';
+
+  @override
   String get startNewChallengeSection => 'Start a New Challenge';
 
   @override
   String get scrollToTemplates => 'Scroll to templates';
+
+  @override
+  String participantsCount(int count) {
+    return '$count participants';
+  }
+
+  @override
+  String get joinChallenge => 'Join';
+
+  @override
+  String get joined => 'Joined';
+
+  @override
+  String get createChallenge => 'Create Challenge';
+
+  @override
+  String get challengeCreated => 'Challenge created.';
+
+  @override
+  String get challengeDescription => 'Description';
+
+  @override
+  String get challengeDescriptionHint => 'Short description of the challenge';
+
+  @override
+  String get enterDescription => 'Enter a description';
+
+  @override
+  String get durationDays => 'Duration (days)';
+
+  @override
+  String get rewardXp => 'Reward XP';
+
+  @override
+  String get dailyChallengeLimitReached =>
+      'Daily challenge creation limit reached (2 per day).';
+
+  @override
+  String get dailyLimitTooltip => 'Daily limit reached. Come back tomorrow.';
 
   @override
   String get startChallengeButton => 'Start Challenge';
@@ -212,6 +260,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get todaysSuggestedGoals => 'Today\'s Suggested Goals';
+
+  @override
+  String get todaysAIPlan => 'Today\'s AI Plan';
 
   @override
   String get reminderBannerMessage =>

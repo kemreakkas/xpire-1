@@ -1,141 +1,201 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../core/ui/app_radius.dart';
+import '../../core/config/supabase_config.dart';
+import '../../features/auth/auth_controller.dart';
 import '../../core/ui/app_spacing.dart';
 import '../../core/ui/app_theme.dart';
-import '../../core/ui/nav_helpers.dart';
+import '../../core/ui/gamification.dart';
 import '../../core/ui/responsive.dart';
-import '../../data/models/challenge.dart';
-import '../../features/premium/premium_controller.dart';
+import '../../data/models/challenge_participant.dart';
+import '../../data/models/community_challenge.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/providers.dart';
 
-class ChallengeListPage extends ConsumerWidget {
+const double _webSectionSpacing = 24;
+const double _maxContentWidth = 1100;
+
+class ChallengeListPage extends ConsumerStatefulWidget {
   const ChallengeListPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ChallengeListPage> createState() => _ChallengeListPageState();
+}
+
+class _ChallengeListPageState extends ConsumerState<ChallengeListPage> {
+  final GlobalKey _communitySectionKey = GlobalKey();
+
+  void _scrollToCommunity() {
+    final context = _communitySectionKey.currentContext;
+    if (context != null) {
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final challengesAsync = ref.watch(challengesListProvider);
-    final isPremium = ref.watch(PremiumController.isPremiumProvider);
     final isWebWide = Responsive.isWebWide(context);
-    final padding = isWebWide ? AppSpacing.lg : AppSpacing.grid;
+    final padding = isWebWide ? _webSectionSpacing : AppSpacing.grid;
+
+    if (!SupabaseConfig.isConfigured) {
+      return Material(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.all(padding),
+            child: Text(
+              l10n.supabaseNotConfigured,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+          ),
+        ),
+      );
+    }
+
+    final myActiveAsync = ref.watch(myActiveChallengesWithDetailsProvider);
+    final communityAsync = ref.watch(communityChallengesWithMetaProvider);
+    final createdTodayAsync = ref.watch(challengesCreatedTodayCountProvider);
+    final createdToday = createdTodayAsync.maybeWhen(
+      data: (v) => v,
+      orElse: () => 0,
+    );
+    final createLimitReached = createdToday >= 2;
 
     return Material(
       color: Theme.of(context).scaffoldBackgroundColor,
-      child: challengesAsync.when(
-        loading: () => Center(
-          child: Padding(
-            padding: EdgeInsets.all(padding),
-            child: const CircularProgressIndicator(),
-          ),
-        ),
-        error: (err, _) => Center(
-          child: Padding(
-            padding: EdgeInsets.all(padding),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.all(padding),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: _maxContentWidth),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 48,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                const SizedBox(height: AppSpacing.md),
+                // ---------- Section 1: My Active Challenges ----------
                 Text(
-                  l10n.challengesLoadError,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  l10n.myActiveChallengesSection,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
                 ),
-                const SizedBox(height: AppSpacing.lg),
-                FilledButton.tonal(
-                  onPressed: () =>
-                      ref.invalidate(challengesListProvider),
-                  child: Text(l10n.tryAgain),
+                SizedBox(
+                  height: isWebWide ? _webSectionSpacing : AppSpacing.md,
                 ),
+                myActiveAsync.when(
+                  loading: () => const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 32),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  error: (err, _) => _SectionError(
+                    message: l10n.challengesLoadError,
+                    onRetry: () => ref.invalidate(myActiveParticipantsProvider),
+                    l10n: l10n,
+                  ),
+                  data: (list) {
+                    if (list.isEmpty) {
+                      return _ActiveEmptyState(
+                        l10n: l10n,
+                        onScrollToCommunity: _scrollToCommunity,
+                      );
+                    }
+                    return _MyActiveSectionContent(
+                      isWebWide: isWebWide,
+                      items: list,
+                      l10n: l10n,
+                    );
+                  },
+                ),
+                SizedBox(height: isWebWide ? 32 : AppSpacing.lg),
+
+                // ---------- Section 2: Community Challenges ----------
+                KeyedSubtree(
+                  key: _communitySectionKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              l10n.communityChallengesSection,
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                          Tooltip(
+                            message: createLimitReached
+                                ? l10n.dailyLimitTooltip
+                                : l10n.createChallenge,
+                            child: FilledButton.tonal(
+                              onPressed: createLimitReached
+                                  ? null
+                                  : () => context.push('/challenges/create'),
+                              child: Text(l10n.createChallenge),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        height: isWebWide ? _webSectionSpacing : AppSpacing.md,
+                      ),
+                      communityAsync.when(
+                        loading: () => const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 32),
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                        error: (err, _) => _SectionError(
+                          message: l10n.challengesLoadError,
+                          onRetry: () => ref.invalidate(
+                            communityChallengesWithMetaProvider,
+                          ),
+                          l10n: l10n,
+                        ),
+                        data: (list) {
+                          if (list.isEmpty) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 24),
+                              child: Text(
+                                l10n.challengesEmpty,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                                textAlign: TextAlign.center,
+                              ),
+                            );
+                          }
+                          return _CommunitySectionContent(
+                            isWebWide: isWebWide,
+                            items: list,
+                            l10n: l10n,
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
               ],
             ),
           ),
         ),
-        data: (challenges) {
-          if (challenges.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: EdgeInsets.all(padding),
-                child: _ChallengesEmptyState(l10n: l10n),
-              ),
-            );
-          }
-          if (isWebWide) {
-            return CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.all(padding),
-                    child: Text(
-                      l10n.challengesIntro,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ),
-                ),
-                SliverPadding(
-                  padding: EdgeInsets.symmetric(horizontal: padding),
-                  sliver: SliverGrid(
-                    gridDelegate:
-                        const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 360,
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 16,
-                      childAspectRatio: 1.1,
-                    ),
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      final c = challenges[index];
-                      return _ChallengeCard(
-                        challenge: c,
-                        isLocked: c.isPremium && !isPremium,
-                        l10n: l10n,
-                        onTap: () =>
-                            goOrPush(context, '/challenges/${c.id}'),
-                      );
-                    }, childCount: challenges.length),
-                  ),
-                ),
-                const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
-              ],
-            );
-          }
-          return ListView(
-            padding: EdgeInsets.all(padding),
-            children: [
-              Text(
-                l10n.challengesIntro,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              ...challenges.map(
-                (c) => Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                  child: _ChallengeCard(
-                    challenge: c,
-                    isLocked: c.isPremium && !isPremium,
-                    l10n: l10n,
-                    onTap: () => goOrPush(context, '/challenges/${c.id}'),
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
       ),
     );
   }
 }
 
-class _ChallengesEmptyState extends StatelessWidget {
-  const _ChallengesEmptyState({required this.l10n});
+class _ActiveEmptyState extends StatelessWidget {
+  const _ActiveEmptyState({
+    required this.l10n,
+    required this.onScrollToCommunity,
+  });
 
   final AppLocalizations l10n;
+  final VoidCallback onScrollToCommunity;
 
   @override
   Widget build(BuildContext context) {
@@ -147,9 +207,9 @@ class _ChallengesEmptyState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.emoji_events_outlined,
-              size: 56,
-              color: theme.colorScheme.primary,
+              Icons.workspace_premium_outlined,
+              size: 48,
+              color: AppTheme.accent,
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
@@ -161,7 +221,7 @@ class _ChallengesEmptyState extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              l10n.challengesNoActiveSubtitle,
+              l10n.challengesNoActiveSubtitleShort,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -169,9 +229,9 @@ class _ChallengesEmptyState extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.lg),
             FilledButton.icon(
-              onPressed: () => goOrPush(context, '/dashboard'),
-              icon: const Icon(Icons.explore, size: 20),
-              label: Text(l10n.browseChallenges),
+              onPressed: onScrollToCommunity,
+              icon: const Icon(Icons.group, size: 20),
+              label: Text(l10n.scrollToTemplates),
             ),
           ],
         ),
@@ -180,77 +240,330 @@ class _ChallengesEmptyState extends StatelessWidget {
   }
 }
 
-class _ChallengeCard extends StatelessWidget {
-  const _ChallengeCard({
-    required this.challenge,
-    required this.isLocked,
+class _MyActiveSectionContent extends StatelessWidget {
+  const _MyActiveSectionContent({
+    required this.isWebWide,
+    required this.items,
     required this.l10n,
-    required this.onTap,
   });
 
-  final Challenge challenge;
-  final bool isLocked;
+  final bool isWebWide;
+  final List<({ChallengeParticipant p, CommunityChallenge c})> items;
   final AppLocalizations l10n;
-  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: InkWell(
-        onTap: isLocked ? null : onTap,
-        borderRadius: AppRadius.lgRadius,
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+    if (isWebWide && items.length > 1) {
+      const crossAxisCount = 2;
+      final rows = <Widget>[];
+      for (var i = 0; i < items.length; i += crossAxisCount) {
+        final rowChildren = <Widget>[];
+        for (var j = 0; j < crossAxisCount; j++) {
+          final idx = i + j;
+          if (idx < items.length) {
+            rowChildren.add(
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          challenge.title,
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        if (isLocked) ...[
-                          const SizedBox(width: AppSpacing.sm),
-                          Icon(
-                            Icons.lock_outline,
-                            size: 18,
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      challenge.description,
-                      style: Theme.of(context).textTheme.bodySmall,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      l10n.daysBonusXp(
-                        challenge.durationDays,
-                        challenge.bonusXp,
-                      ),
-                      style: Theme.of(context).textTheme.labelSmall,
-                    ),
-                  ],
+                child: _MyActiveCard(item: items[idx], l10n: l10n),
+              ),
+            );
+            if (j < crossAxisCount - 1) {
+              rowChildren.add(SizedBox(width: _webSectionSpacing));
+            }
+          } else {
+            rowChildren.add(const Expanded(child: SizedBox.shrink()));
+            if (j < crossAxisCount - 1) {
+              rowChildren.add(SizedBox(width: _webSectionSpacing));
+            }
+          }
+        }
+        rows.add(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: rowChildren,
+          ),
+        );
+        if (i + crossAxisCount < items.length) {
+          rows.add(SizedBox(height: _webSectionSpacing));
+        }
+      }
+      return Column(children: rows);
+    }
+    return Column(
+      children: items
+          .map(
+            (item) => Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: _MyActiveCard(item: item, l10n: l10n),
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+
+class _MyActiveCard extends StatelessWidget {
+  const _MyActiveCard({required this.item, required this.l10n});
+
+  final ({ChallengeParticipant p, CommunityChallenge c}) item;
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final progressFraction = item.c.durationDays > 0
+        ? item.p.completedDays / item.c.durationDays
+        : 0.0;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.workspace_premium_outlined,
+                  size: 24,
+                  color: AppTheme.accent,
                 ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(item.c.title, style: theme.textTheme.titleMedium),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.dayProgress(item.p.currentDay, item.c.durationDays),
+              style: theme.textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 4),
+            LinearProgressIndicator(value: progressFraction),
+            const SizedBox(height: 4),
+            Text(
+              l10n.bonusXp(item.c.rewardXp),
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.primary,
               ),
-              Icon(
-                Icons.chevron_right,
-                color: isLocked
-                    ? Theme.of(context).colorScheme.outline
-                    : AppTheme.accent,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CommunitySectionContent extends StatelessWidget {
+  const _CommunitySectionContent({
+    required this.isWebWide,
+    required this.items,
+    required this.l10n,
+  });
+
+  final bool isWebWide;
+  final List<
+    ({CommunityChallenge challenge, int participantCount, bool hasJoined})
+  >
+  items;
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    const crossAxisCount = 3;
+    if (isWebWide) {
+      final rows = <Widget>[];
+      for (var i = 0; i < items.length; i += crossAxisCount) {
+        final rowChildren = <Widget>[];
+        for (var j = 0; j < crossAxisCount; j++) {
+          final idx = i + j;
+          if (idx < items.length) {
+            rowChildren.add(
+              Expanded(
+                child: _CommunityCard(item: items[idx], l10n: l10n),
               ),
-            ],
+            );
+            if (j < crossAxisCount - 1) {
+              rowChildren.add(SizedBox(width: _webSectionSpacing));
+            }
+          } else {
+            rowChildren.add(const Expanded(child: SizedBox.shrink()));
+            if (j < crossAxisCount - 1) {
+              rowChildren.add(SizedBox(width: _webSectionSpacing));
+            }
+          }
+        }
+        rows.add(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: rowChildren,
+          ),
+        );
+        if (i + crossAxisCount < items.length) {
+          rows.add(SizedBox(height: _webSectionSpacing));
+        }
+      }
+      return Column(children: rows);
+    }
+    return Column(
+      children: items
+          .map(
+            (item) => Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: _CommunityCard(item: item, l10n: l10n),
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+
+class _CommunityCard extends ConsumerStatefulWidget {
+  const _CommunityCard({required this.item, required this.l10n});
+
+  final ({CommunityChallenge challenge, int participantCount, bool hasJoined})
+  item;
+  final AppLocalizations l10n;
+
+  @override
+  ConsumerState<_CommunityCard> createState() => _CommunityCardState();
+}
+
+class _CommunityCardState extends ConsumerState<_CommunityCard> {
+  bool _isJoining = false;
+
+  Future<void> _join() async {
+    if (widget.item.hasJoined || _isJoining) return;
+    final uid = ref.read(authUserIdProvider);
+    if (uid == null) return;
+    setState(() => _isJoining = true);
+    try {
+      final repo = ref.read(supabaseChallengeParticipantsRepositoryProvider);
+      await repo.join(uid, widget.item.challenge.id);
+      ref.invalidate(myActiveParticipantsProvider);
+      ref.invalidate(communityChallengesWithMetaProvider);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${widget.item.challenge.title}: ${widget.l10n.joined}',
           ),
         ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(widget.l10n.somethingWentWrong)));
+    } finally {
+      if (mounted) setState(() => _isJoining = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = widget.item.challenge;
+    final l10n = widget.l10n;
+    final hasJoined = widget.item.hasJoined;
+    final theme = Theme.of(context);
+    return premiumCard(
+      context: context,
+      enableHoverLift: true,
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              c.title,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              c.description,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppTheme.textSecondary,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                Text(
+                  '${c.durationDays} days',
+                  style: theme.textTheme.labelMedium,
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Text(
+                  l10n.bonusXp(c.rewardXp),
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: AppTheme.accent,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              l10n.participantsCount(widget.item.participantCount),
+              style: theme.textTheme.labelSmall,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            OutlinedButton(
+              onPressed: hasJoined || _isJoining ? null : _join,
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                side: BorderSide(
+                  color: hasJoined
+                      ? theme.colorScheme.outline
+                      : AppTheme.accent.withValues(alpha: 0.6),
+                ),
+              ),
+              child: _isJoining
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(hasJoined ? l10n.joined : l10n.joinChallenge),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionError extends StatelessWidget {
+  const _SectionError({
+    required this.message,
+    required this.onRetry,
+    required this.l10n,
+  });
+
+  final String message;
+  final VoidCallback onRetry;
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 40,
+            color: Theme.of(context).colorScheme.error,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(message, textAlign: TextAlign.center),
+          const SizedBox(height: AppSpacing.md),
+          FilledButton.tonal(onPressed: onRetry, child: Text(l10n.tryAgain)),
+        ],
       ),
     );
   }

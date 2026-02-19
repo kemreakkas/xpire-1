@@ -116,6 +116,12 @@ abstract class AppLocalizations {
   /// **'Create account'**
   String get createAccount;
 
+  /// No description provided for @dontHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account? '**
+  String get dontHaveAccount;
+
   /// No description provided for @email.
   ///
   /// In en, this message translates to:
@@ -446,6 +452,18 @@ abstract class AppLocalizations {
   /// **'Active Challenges'**
   String get activeChallengesSection;
 
+  /// No description provided for @myActiveChallengesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'My Active Challenges'**
+  String get myActiveChallengesSection;
+
+  /// No description provided for @communityChallengesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Community Challenges'**
+  String get communityChallengesSection;
+
   /// No description provided for @startNewChallengeSection.
   ///
   /// In en, this message translates to:
@@ -457,6 +475,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Scroll to templates'**
   String get scrollToTemplates;
+
+  /// No description provided for @participantsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} participants'**
+  String participantsCount(int count);
+
+  /// No description provided for @joinChallenge.
+  ///
+  /// In en, this message translates to:
+  /// **'Join'**
+  String get joinChallenge;
+
+  /// No description provided for @joined.
+  ///
+  /// In en, this message translates to:
+  /// **'Joined'**
+  String get joined;
+
+  /// No description provided for @createChallenge.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Challenge'**
+  String get createChallenge;
+
+  /// No description provided for @challengeCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge created.'**
+  String get challengeCreated;
+
+  /// No description provided for @challengeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get challengeDescription;
+
+  /// No description provided for @challengeDescriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Short description of the challenge'**
+  String get challengeDescriptionHint;
+
+  /// No description provided for @enterDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a description'**
+  String get enterDescription;
+
+  /// No description provided for @durationDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration (days)'**
+  String get durationDays;
+
+  /// No description provided for @rewardXp.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward XP'**
+  String get rewardXp;
+
+  /// No description provided for @dailyChallengeLimitReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily challenge creation limit reached (2 per day).'**
+  String get dailyChallengeLimitReached;
+
+  /// No description provided for @dailyLimitTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily limit reached. Come back tomorrow.'**
+  String get dailyLimitTooltip;
 
   /// No description provided for @startChallengeButton.
   ///
@@ -487,6 +577,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Today\'s Suggested Goals'**
   String get todaysSuggestedGoals;
+
+  /// No description provided for @todaysAIPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s AI Plan'**
+  String get todaysAIPlan;
 
   /// No description provided for @reminderBannerMessage.
   ///
