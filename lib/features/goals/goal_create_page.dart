@@ -132,6 +132,7 @@ class _GoalCreatePageState extends ConsumerState<GoalCreatePage> {
         'goal_id': goal.id,
       });
       setState(() => _selectedTemplate = null);
+      ref.invalidate(goalsControllerProvider);
       if (!context.mounted) return;
       context.go('/dashboard');
     } catch (e, st) {

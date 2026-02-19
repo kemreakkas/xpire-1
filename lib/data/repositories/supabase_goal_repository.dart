@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -25,6 +25,7 @@ class SupabaseGoalRepository {
           .from('goals')
           .select()
           .eq('user_id', uid)
+          .eq('is_active', true)
           .order('created_at', ascending: false);
       final list = res as List<dynamic>;
       await _box.clear();
@@ -62,7 +63,7 @@ class SupabaseGoalRepository {
           'category': _categoryToStr(goal.category),
           'difficulty': _difficultyToStr(goal.difficulty),
           'base_xp': goal.baseXp,
-          'frequency': null,
+          'frequency': 'daily',
           'is_active': goal.isActive,
           'created_at': goal.createdAt.toIso8601String(),
           'updated_at': DateTime.now().toIso8601String(),
@@ -115,8 +116,7 @@ class SupabaseGoalRepository {
     );
   }
 
-  String _categoryToStr(GoalCategory c) =>
-      c.name;
+  String _categoryToStr(GoalCategory c) => c.name;
 
   GoalCategory _strToCategory(String? s) {
     if (s == null) return GoalCategory.general;
