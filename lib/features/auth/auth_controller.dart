@@ -54,7 +54,7 @@ class AuthController {
     if (user == null) {
       throw Exception('Sign up did not return a user');
     }
-    await _client.from('public.users').insert({
+    await _client.from('users').insert({
       'id': user.id,
       'email': user.email ?? email,
       'level': 1,

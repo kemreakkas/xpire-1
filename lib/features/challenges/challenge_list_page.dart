@@ -468,7 +468,10 @@ class _CommunityCardState extends ConsumerState<_CommunityCard> {
     return premiumCard(
       context: context,
       enableHoverLift: true,
-      child: Padding(
+      child: InkWell(
+        onTap: () => context.push('/challenges/${c.id}'),
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -532,6 +535,7 @@ class _CommunityCardState extends ConsumerState<_CommunityCard> {
           ],
         ),
       ),
+    ),
     );
   }
 }

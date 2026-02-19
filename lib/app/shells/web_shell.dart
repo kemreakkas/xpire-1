@@ -22,6 +22,7 @@ class WebShell extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     if (location.startsWith('/challenges')) return l10n.challenges;
     if (location == '/dashboard') return l10n.dashboard;
+    if (location == '/leaderboard') return l10n.leaderboard;
     if (location == '/stats') return l10n.stats;
     if (location == '/profile') return l10n.profile;
     return l10n.dashboard;
@@ -96,7 +97,7 @@ class _Sidebar extends StatelessWidget {
   final AppLocalizations l10n;
   final void Function(String path) onNavigate;
 
-  static const _paths = ['/dashboard', '/challenges', '/stats', '/profile'];
+  static const _paths = ['/dashboard', '/challenges', '/leaderboard', '/stats', '/profile'];
 
   @override
   Widget build(BuildContext context) {
@@ -131,6 +132,8 @@ class _Sidebar extends StatelessWidget {
                   ? l10n.dashboard
                   : path == '/challenges'
                   ? l10n.challenges
+                  : path == '/leaderboard'
+                  ? l10n.leaderboard
                   : path == '/stats'
                   ? l10n.stats
                   : l10n.profile;
@@ -138,6 +141,8 @@ class _Sidebar extends StatelessWidget {
                   ? Icons.dashboard
                   : path == '/challenges'
                   ? Icons.emoji_events
+                  : path == '/leaderboard'
+                  ? Icons.leaderboard
                   : path == '/stats'
                   ? Icons.insights
                   : Icons.person;

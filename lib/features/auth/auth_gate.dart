@@ -9,8 +9,6 @@ import '../../core/ui/app_theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/providers.dart';
 import 'auth_controller.dart';
-import 'login_page.dart';
-import 'register_page.dart';
 import '../onboarding/onboarding_page.dart';
 
 /// Root gate: shows LoginPage when no session, else the main app (Dashboard shell).
@@ -57,9 +55,7 @@ class AuthGate extends ConsumerWidget {
         locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
-        ),
+        home: const Scaffold(body: Center(child: CircularProgressIndicator())),
       ),
       error: (err, stack) => MaterialApp(
         theme: AppTheme.dark,
@@ -77,7 +73,10 @@ class AuthGate extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(l10n.authError, style: Theme.of(context).textTheme.titleLarge),
+                      Text(
+                        l10n.authError,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
                       const SizedBox(height: 16),
                       SelectableText(err.toString()),
                       const SizedBox(height: 16),
@@ -92,20 +91,8 @@ class AuthGate extends ConsumerWidget {
       ),
       data: (session) {
         if (session == null) {
-          return MaterialApp(
-            title: AppEnv.appName,
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.dark,
-            darkTheme: AppTheme.dark,
-            locale: locale,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: const LoginPage(),
-            routes: {
-              '/login': (context) => const LoginPage(),
-              '/register': (context) => const RegisterPage(),
-            },
-          );
+          // Use same router app so LoginPage/RegisterPage are inside GoRouter tree.
+          return const XpireApp();
         }
         return _AuthenticatedGate(locale: locale);
       },
@@ -130,9 +117,7 @@ class _AuthenticatedGate extends ConsumerWidget {
         locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
-        ),
+        home: const Scaffold(body: Center(child: CircularProgressIndicator())),
       ),
       error: (err, _) => MaterialApp(
         theme: AppTheme.dark,
@@ -140,9 +125,7 @@ class _AuthenticatedGate extends ConsumerWidget {
         locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: Center(child: Text(err.toString())),
-        ),
+        home: Scaffold(body: Center(child: Text(err.toString()))),
       ),
       data: (profile) {
         if (!profile.onboardingCompleted) {

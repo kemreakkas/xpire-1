@@ -59,7 +59,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   void _goToRegister() {
-    context.go('/register');
+    GoRouter.of(context).go('/register');
   }
 
   @override

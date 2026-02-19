@@ -11,9 +11,11 @@ import '../../core/ui/app_theme.dart';
 import '../../data/content/content_repository.dart';
 import '../../data/models/active_challenge.dart';
 import '../../data/models/challenge.dart';
+import '../../data/models/community_challenge.dart';
 import '../../data/models/goal.dart';
 import '../../data/models/goal_template.dart';
 import '../../features/auth/auth_controller.dart';
+import '../../features/leaderboard/challenge_leaderboard_section.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/providers.dart';
 
@@ -27,6 +29,7 @@ class ChallengeDetailPage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final content = ref.watch(contentRepositoryProvider);
     final challenge = content.getChallengeById(challengeId);
+    final communityAsync = ref.watch(communityChallengeByIdProvider(challengeId));
     final progressRepo = ref.watch(challengeProgressRepositoryProvider);
     final active = progressRepo.getCurrent();
     final progressState = ref.watch(activeChallengeProgressProvider);
@@ -51,12 +54,36 @@ class ChallengeDetailPage extends ConsumerWidget {
         : (progressState?.completed ?? false);
 
     if (challenge == null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(l10n.challenges),
-          automaticallyImplyLeading: shouldShowAppBarLeading(context),
+      return communityAsync.when(
+        loading: () => Scaffold(
+          appBar: AppBar(
+            title: Text(l10n.challenges),
+            automaticallyImplyLeading: shouldShowAppBarLeading(context),
+          ),
+          body: const Center(child: CircularProgressIndicator()),
         ),
-        body: Center(child: Text(l10n.challengeNotFound)),
+        error: (_, __) => Scaffold(
+          appBar: AppBar(
+            title: Text(l10n.challenges),
+            automaticallyImplyLeading: shouldShowAppBarLeading(context),
+          ),
+          body: Center(child: Text(l10n.challengeNotFound)),
+        ),
+        data: (community) {
+          if (community == null) {
+            return Scaffold(
+              appBar: AppBar(
+                title: Text(l10n.challenges),
+                automaticallyImplyLeading: shouldShowAppBarLeading(context),
+              ),
+              body: Center(child: Text(l10n.challengeNotFound)),
+            );
+          }
+          return _CommunityChallengeDetailView(
+            challenge: community,
+            challengeId: challengeId,
+          );
+        },
       );
     }
 
@@ -175,6 +202,8 @@ class ChallengeDetailPage extends ConsumerWidget {
                 ),
                 child: Text(l10n.startChallenge),
               ),
+            if (SupabaseConfig.isConfigured)
+              ChallengeLeaderboardSection(challengeId: challengeId),
           ],
         ),
       ),
@@ -318,6 +347,151 @@ class ChallengeDetailPage extends ConsumerWidget {
     } else {
       context.go('/dashboard');
     }
+  }
+}
+
+/// Detail view for a community challenge: title, description, join, leaderboard.
+class _CommunityChallengeDetailView extends ConsumerStatefulWidget {
+  const _CommunityChallengeDetailView({
+    required this.challenge,
+    required this.challengeId,
+  });
+
+  final CommunityChallenge challenge;
+  final String challengeId;
+
+  @override
+  ConsumerState<_CommunityChallengeDetailView> createState() =>
+      _CommunityChallengeDetailViewState();
+}
+
+class _CommunityChallengeDetailViewState
+    extends ConsumerState<_CommunityChallengeDetailView> {
+  bool _isJoining = false;
+
+  Future<void> _join() async {
+    if (_isJoining) return;
+    final uid = ref.read(authUserIdProvider);
+    if (uid == null) return;
+    setState(() => _isJoining = true);
+    try {
+      final repo = ref.read(supabaseChallengeParticipantsRepositoryProvider);
+      await repo.join(uid, widget.challengeId);
+      ref.invalidate(myActiveParticipantsProvider);
+      ref.invalidate(communityChallengesWithMetaProvider);
+      ref.invalidate(challengeLeaderboardProvider(widget.challengeId));
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${widget.challenge.title}: ${l10n.joined}',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.somethingWentWrong)));
+    } finally {
+      if (mounted) setState(() => _isJoining = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final metaAsync = ref.watch(communityChallengesWithMetaProvider);
+    final hasJoined = metaAsync.maybeWhen(
+      data: (list) => list
+          .where((e) => e.challenge.id == widget.challengeId)
+          .map((e) => e.hasJoined)
+          .firstOrNull ?? false,
+      orElse: () => false,
+    );
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.challenge.title),
+        automaticallyImplyLeading: shouldShowAppBarLeading(context),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppSpacing.grid),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.challenge.description,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Row(
+                      children: [
+                        _Chip(
+                            label: l10n.daysCount(widget.challenge.durationDays)),
+                        const SizedBox(width: AppSpacing.sm),
+                        _Chip(
+                            label:
+                                l10n.bonusXpLabel(widget.challenge.rewardXp)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            if (!hasJoined)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                child: OutlinedButton(
+                  onPressed: _isJoining ? null : _join,
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    side: BorderSide(
+                        color: AppTheme.accent.withValues(alpha: 0.6)),
+                  ),
+                  child: _isJoining
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child:
+                              CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(l10n.joinChallenge),
+                ),
+              )
+            else
+              Card(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.check_circle_outline,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Text(
+                        l10n.youAreDoingThisChallenge,
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ChallengeLeaderboardSection(challengeId: widget.challengeId),
+          ],
+        ),
+      ),
+    );
   }
 }
 

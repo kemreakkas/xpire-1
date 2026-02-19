@@ -243,5 +243,12 @@
   "monthly": "Monthly",
   "yearly": "Yearly",
   "buy": "Buy",
-  "unknownRoutingError": "Unknown routing error"
+  "unknownRoutingError": "Unknown routing error",
+  "leaderboard": "Leaderboard",
+  "challengeLeaderboard": "Challenge Leaderboard",
+  "weeklyLeaderboard": "Weekly Leaderboard",
+  "yourRank": "Your rank",
+  "completedDaysLabel": "Days",
+  "noLeaderboardYet": "No entries yet",
+  "rankLabel": "Rank"
 }

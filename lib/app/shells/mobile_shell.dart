@@ -17,7 +17,7 @@ class MobileShell extends ConsumerWidget {
   final GoRouterState routerState;
   final Widget child;
 
-  static const _navPaths = ['/dashboard', '/challenges', '/stats', '/profile'];
+  static const _navPaths = ['/dashboard', '/challenges', '/leaderboard', '/stats', '/profile'];
 
   int _selectedIndex(String location) {
     if (location.startsWith('/challenges')) return 1;
@@ -30,13 +30,14 @@ class MobileShell extends ConsumerWidget {
     if (location == '/challenges') return l10n.challenges;
     if (location.startsWith('/challenges/')) return l10n.challenges;
     if (location == '/dashboard') return l10n.dashboard;
+    if (location == '/leaderboard') return l10n.leaderboard;
     if (location == '/stats') return l10n.stats;
     if (location == '/profile') return l10n.profile;
     return l10n.dashboard;
   }
 
   bool _isDetailRoute(String location) {
-    return location.startsWith('/challenges/') && location != '/challenges';
+    return (location.startsWith('/challenges/') && location != '/challenges');
   }
 
   @override
@@ -90,6 +91,11 @@ class MobileShell extends ConsumerWidget {
             icon: const Icon(Icons.emoji_events_outlined),
             selectedIcon: const Icon(Icons.emoji_events),
             label: l10n.challenges,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.leaderboard_outlined),
+            selectedIcon: const Icon(Icons.leaderboard),
+            label: l10n.leaderboard,
           ),
           NavigationDestination(
             icon: const Icon(Icons.insights_outlined),

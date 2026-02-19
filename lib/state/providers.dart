@@ -19,6 +19,7 @@ import '../features/goals/goal_create_page.dart';
 import '../features/challenges/challenge_list_page.dart';
 import '../features/challenges/challenge_detail_page.dart';
 import '../features/challenges/community_challenge_create_page.dart';
+import '../features/leaderboard/leaderboard_page.dart';
 import '../features/onboarding/onboarding_page.dart';
 import '../features/premium/premium_page.dart';
 import '../features/profile/profile_page.dart';
@@ -28,8 +29,10 @@ import '../l10n/app_localizations.dart';
 import '../data/content/content_repository.dart';
 import '../data/models/active_challenge.dart';
 import '../data/models/challenge.dart';
+import '../data/models/challenge_leaderboard_entry.dart';
 import '../data/models/challenge_participant.dart';
 import '../data/models/community_challenge.dart';
+import '../data/models/weekly_leaderboard_entry.dart';
 import '../data/models/goal.dart';
 import '../data/models/goal_completion.dart';
 import '../data/models/stats.dart';
@@ -39,6 +42,7 @@ import '../data/repositories/supabase_challenge_progress_repository.dart';
 import '../data/repositories/supabase_challenge_participants_repository.dart';
 import '../data/repositories/supabase_community_challenges_repository.dart';
 import '../data/repositories/supabase_completion_repository.dart';
+import '../data/repositories/supabase_leaderboard_repository.dart';
 import '../data/repositories/supabase_goal_repository.dart';
 import '../data/repositories/supabase_profile_repository.dart';
 import '../features/challenges/challenge_engine.dart';
@@ -121,6 +125,36 @@ final supabaseChallengeParticipantsRepositoryProvider =
       return SupabaseChallengeParticipantsRepository();
     });
 
+final supabaseLeaderboardRepositoryProvider =
+    Provider<SupabaseLeaderboardRepository>((ref) {
+      return SupabaseLeaderboardRepository();
+    });
+
+/// Challenge leaderboard for a given challenge_id (top 10 + current user entry if not in top 10).
+final challengeLeaderboardProvider = FutureProvider.family<
+    ({List<ChallengeLeaderboardEntry> top10, ChallengeLeaderboardEntry? currentUserEntry}),
+    String>((ref, challengeId) async {
+  if (!SupabaseConfig.isConfigured) return (top10: [], currentUserEntry: null);
+  final repo = ref.read(supabaseLeaderboardRepositoryProvider);
+  return repo.getChallengeLeaderboard(challengeId);
+});
+
+/// Weekly global leaderboard (top 20).
+final weeklyLeaderboardProvider = FutureProvider<List<WeeklyLeaderboardEntry>>((ref) async {
+  if (!SupabaseConfig.isConfigured) return [];
+  final repo = ref.read(supabaseLeaderboardRepositoryProvider);
+  return repo.getWeeklyLeaderboard();
+});
+
+/// Single community challenge by id (for detail page when not a template).
+final communityChallengeByIdProvider =
+    FutureProvider.family<CommunityChallenge?, String>((ref, id) async {
+  if (!SupabaseConfig.isConfigured) return null;
+  final repo = ref.read(supabaseCommunityChallengesRepositoryProvider);
+  final map = await repo.getByIds([id]);
+  return map[id];
+});
+
 /// My active community challenge participants (challenge_participants where is_completed = false).
 final myActiveParticipantsProvider = FutureProvider<List<ChallengeParticipant>>((ref) async {
   if (!SupabaseConfig.isConfigured) return [];
@@ -152,21 +186,18 @@ final challengesCreatedTodayCountProvider = FutureProvider<int>((ref) async {
   return repo.countCreatedTodayByUser(uid);
 });
 
-/// Community (public) challenges with participant count and hasJoined.
+/// Community (public) challenges with participant count and hasJoined (from challenge_with_counts view).
 final communityChallengesWithMetaProvider = FutureProvider<List<({CommunityChallenge challenge, int participantCount, bool hasJoined})>>((ref) async {
   if (!SupabaseConfig.isConfigured) return [];
   final challengesRepo = ref.read(supabaseCommunityChallengesRepositoryProvider);
   final participantsRepo = ref.read(supabaseChallengeParticipantsRepositoryProvider);
   final uid = ref.watch(authUserIdProvider);
-  final list = await challengesRepo.listPublic();
+  final list = await challengesRepo.listPublicWithCounts();
   if (list.isEmpty) return [];
-  final ids = list.map((e) => e.id).toList();
-  final counts = await participantsRepo.getParticipantCounts(ids);
   final result = <({CommunityChallenge challenge, int participantCount, bool hasJoined})>[];
-  for (final c in list) {
-    final count = counts[c.id] ?? 0;
-    final hasJoined = uid != null ? await participantsRepo.hasJoined(uid, c.id) : false;
-    result.add((challenge: c, participantCount: count, hasJoined: hasJoined));
+  for (final item in list) {
+    final hasJoined = uid != null ? await participantsRepo.hasJoined(uid, item.challenge.id) : false;
+    result.add((challenge: item.challenge, participantCount: item.participantCount, hasJoined: hasJoined));
   }
   return result;
 });
@@ -513,6 +544,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             path: '/stats',
             pageBuilder: (context, state) =>
                 buildAppPage(context, state, const StatsPage()),
+          ),
+          GoRoute(
+            path: '/leaderboard',
+            pageBuilder: (context, state) =>
+                buildAppPage(context, state, const LeaderboardPage()),
           ),
           GoRoute(
             path: '/profile',

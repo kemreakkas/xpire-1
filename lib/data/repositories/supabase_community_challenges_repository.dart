@@ -99,7 +99,7 @@ class SupabaseCommunityChallengesRepository {
     }
   }
 
-  /// List public challenges.
+  /// List public challenges (from challenges table).
   Future<List<CommunityChallenge>> listPublic() async {
     if (!SupabaseConfig.isConfigured) return [];
     try {
@@ -116,6 +116,30 @@ class SupabaseCommunityChallengesRepository {
     } catch (e, st) {
       AppLog.error('Community challenges listPublic failed', e, st);
       rethrow;
+    }
+  }
+
+  /// List public challenges with participant count from challenge_with_counts view.
+  Future<List<({CommunityChallenge challenge, int participantCount})>> listPublicWithCounts() async {
+    if (!SupabaseConfig.isConfigured) return [];
+    try {
+      final res = await _client
+          .from('challenge_with_counts')
+          .select()
+          .eq('is_public', true)
+          .order('created_at', ascending: false);
+      final list = res as List<dynamic>;
+      return list
+          .whereType<Map<String, dynamic>>()
+          .map((row) {
+            final c = _fromRow(row);
+            final count = (row['participant_count'] as num?)?.toInt() ?? (row['count'] as num?)?.toInt() ?? 0;
+            return (challenge: c, participantCount: count);
+          })
+          .toList(growable: false);
+    } catch (e, st) {
+      AppLog.error('Community challenges listPublicWithCounts failed', e, st);
+      return [];
     }
   }
 

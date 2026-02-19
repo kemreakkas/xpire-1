@@ -609,4 +609,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unknownRoutingError => 'Unknown routing error';
+
+  @override
+  String get leaderboard => 'Leaderboard';
+
+  @override
+  String get challengeLeaderboard => 'Challenge Leaderboard';
+
+  @override
+  String get weeklyLeaderboard => 'Weekly Leaderboard';
+
+  @override
+  String get yourRank => 'Your rank';
+
+  @override
+  String get completedDaysLabel => 'Days';
+
+  @override
+  String get noLeaderboardYet => 'No entries yet';
+
+  @override
+  String get rankLabel => 'Rank';
 }

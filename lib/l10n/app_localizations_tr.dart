@@ -606,4 +606,25 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get unknownRoutingError => 'Bilinmeyen yönlendirme hatası';
+
+  @override
+  String get leaderboard => 'Liderlik Tablosu';
+
+  @override
+  String get challengeLeaderboard => 'Mücadele Liderliği';
+
+  @override
+  String get weeklyLeaderboard => 'Haftalık Liderlik';
+
+  @override
+  String get yourRank => 'Sıralaman';
+
+  @override
+  String get completedDaysLabel => 'Gün';
+
+  @override
+  String get noLeaderboardYet => 'Henüz kayıt yok';
+
+  @override
+  String get rankLabel => 'Sıra';
 }

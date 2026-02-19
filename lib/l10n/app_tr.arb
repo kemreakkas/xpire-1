@@ -243,5 +243,12 @@
   "monthly": "Aylık",
   "yearly": "Yıllık",
   "buy": "Satın al",
-  "unknownRoutingError": "Bilinmeyen yönlendirme hatası"
+  "unknownRoutingError": "Bilinmeyen yönlendirme hatası",
+  "leaderboard": "Liderlik Tablosu",
+  "challengeLeaderboard": "Mücadele Liderliği",
+  "weeklyLeaderboard": "Haftalık Liderlik",
+  "yourRank": "Sıralaman",
+  "completedDaysLabel": "Gün",
+  "noLeaderboardYet": "Henüz kayıt yok",
+  "rankLabel": "Sıra"
 }

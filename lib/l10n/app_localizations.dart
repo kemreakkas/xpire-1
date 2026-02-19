@@ -1189,6 +1189,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unknown routing error'**
   String get unknownRoutingError;
+
+  /// No description provided for @leaderboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaderboard'**
+  String get leaderboard;
+
+  /// No description provided for @challengeLeaderboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge Leaderboard'**
+  String get challengeLeaderboard;
+
+  /// No description provided for @weeklyLeaderboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly Leaderboard'**
+  String get weeklyLeaderboard;
+
+  /// No description provided for @yourRank.
+  ///
+  /// In en, this message translates to:
+  /// **'Your rank'**
+  String get yourRank;
+
+  /// No description provided for @completedDaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Days'**
+  String get completedDaysLabel;
+
+  /// No description provided for @noLeaderboardYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No entries yet'**
+  String get noLeaderboardYet;
+
+  /// No description provided for @rankLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Rank'**
+  String get rankLabel;
 }
 
 class _AppLocalizationsDelegate
