@@ -97,15 +97,21 @@ class _Sidebar extends StatelessWidget {
   final AppLocalizations l10n;
   final void Function(String path) onNavigate;
 
-  static const _paths = ['/dashboard', '/challenges', '/leaderboard', '/stats', '/profile'];
+  static const _paths = [
+    '/dashboard',
+    '/challenges',
+    '/leaderboard',
+    '/stats',
+    '/profile',
+  ];
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isSelected = (path) {
+    bool isSelected(path) {
       if (path == '/challenges') return location.startsWith('/challenges');
       return location == path;
-    };
+    }
 
     return Material(
       color: AppTheme.sidebarDark,

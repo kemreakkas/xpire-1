@@ -11,16 +11,18 @@ class SupabaseCompletionRepository {
 
   final Box<GoalCompletion> _box;
 
-  SupabaseClient get _client => Supabase.instance.client;
+  SupabaseClient? get _client =>
+      SupabaseConfig.isConfigured ? Supabase.instance.client : null;
 
-  String? get _userId => _client.auth.currentUser?.id;
+  String? get _userId => _client?.auth.currentUser?.id;
 
   Future<void> syncFromCloud() async {
     if (!SupabaseConfig.isConfigured) return;
+    final client = _client;
     final uid = _userId;
-    if (uid == null) return;
+    if (client == null || uid == null) return;
     try {
-      final res = await _client
+      final res = await client
           .from('completions')
           .select()
           .eq('user_id', uid)
@@ -46,19 +48,23 @@ class SupabaseCompletionRepository {
   bool containsId(String id) => _box.containsKey(id);
 
   Future<void> upsert(GoalCompletion completion) async {
-    final uid = _userId;
-    if (SupabaseConfig.isConfigured && uid != null) {
-      try {
-        await _client.from('completions').upsert({
-          'id': completion.id,
-          'goal_id': completion.goalId,
-          'user_id': uid,
-          'earned_xp': completion.earnedXp,
-          'completed_at': (completion.completedAt ?? completion.date).toIso8601String(),
-        });
-      } catch (e, st) {
-        AppLog.error('Completion upsert failed', e, st);
-        rethrow;
+    if (SupabaseConfig.isConfigured) {
+      final client = _client;
+      final uid = _userId;
+      if (client != null && uid != null) {
+        try {
+          await client.from('completions').upsert({
+            'id': completion.id,
+            'goal_id': completion.goalId,
+            'user_id': uid,
+            'earned_xp': completion.earnedXp,
+            'completed_at': (completion.completedAt ?? completion.date)
+                .toIso8601String(),
+          });
+        } catch (e, st) {
+          AppLog.error('Completion upsert failed', e, st);
+          // Don't rethrow to keep local storage working
+        }
       }
     }
     await _box.put(completion.id, completion);

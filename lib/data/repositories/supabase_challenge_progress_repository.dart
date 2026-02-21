@@ -9,15 +9,18 @@ import '../models/challenge_progress.dart';
 class SupabaseChallengeProgressRepository {
   SupabaseChallengeProgressRepository();
 
-  SupabaseClient get _client => Supabase.instance.client;
+  SupabaseClient? get _client =>
+      SupabaseConfig.isConfigured ? Supabase.instance.client : null;
 
-  String? get _userId => _client.auth.currentUser?.id;
+  String? get _userId => _client?.auth.currentUser?.id;
 
   /// Active = not completed. From challenge_participants.
   Future<ChallengeProgress?> getActive(String userId) async {
     if (!SupabaseConfig.isConfigured) return null;
+    final client = _client;
+    if (client == null) return null;
     try {
-      final res = await _client
+      final res = await client
           .from('challenge_participants')
           .select()
           .eq('user_id', userId)
@@ -39,13 +42,18 @@ class SupabaseChallengeProgressRepository {
   Future<void> upsert(ChallengeProgress progress) async {
     if (!SupabaseConfig.isConfigured) return;
     final uid = _userId;
-    if (uid == null || progress.userId != uid) return;
+    final client = _client;
+    if (client == null || uid == null || progress.userId != uid) return;
     try {
-      await _client.from('challenge_participants').update({
-        'current_day': progress.currentDay,
-        'completed_days': progress.completedDays,
-        'is_completed': progress.isCompleted,
-      }).eq('id', progress.id).eq('user_id', uid);
+      await client
+          .from('challenge_participants')
+          .update({
+            'current_day': progress.currentDay,
+            'completed_days': progress.completedDays,
+            'is_completed': progress.isCompleted,
+          })
+          .eq('id', progress.id)
+          .eq('user_id', uid);
       AppLog.debug('Challenge progress upsert', progress.id);
     } catch (e, st) {
       AppLog.error('Challenge progress upsert failed', e, st);
@@ -56,8 +64,10 @@ class SupabaseChallengeProgressRepository {
   /// Count completed from challenge_participants.
   Future<int> countCompleted(String userId) async {
     if (!SupabaseConfig.isConfigured) return 0;
+    final client = _client;
+    if (client == null) return 0;
     try {
-      final res = await _client
+      final res = await client
           .from('challenge_participants')
           .select('id')
           .eq('user_id', userId)

@@ -29,7 +29,9 @@ class ChallengeDetailPage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final content = ref.watch(contentRepositoryProvider);
     final challenge = content.getChallengeById(challengeId);
-    final communityAsync = ref.watch(communityChallengeByIdProvider(challengeId));
+    final communityAsync = ref.watch(
+      communityChallengeByIdProvider(challengeId),
+    );
     final progressRepo = ref.watch(challengeProgressRepositoryProvider);
     final active = progressRepo.getCurrent();
     final progressState = ref.watch(activeChallengeProgressProvider);
@@ -190,6 +192,18 @@ class ChallengeDetailPage extends ConsumerWidget {
                       ),
                     ),
                   ),
+                  const SizedBox(height: AppSpacing.md),
+                  OutlinedButton(
+                    onPressed: () => _quitChallenge(context, ref, challenge),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.error,
+                      side: BorderSide(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: Text(l10n.quitChallenge),
+                  ),
                 ],
               )
             else
@@ -348,6 +362,57 @@ class ChallengeDetailPage extends ConsumerWidget {
       context.go('/dashboard');
     }
   }
+
+  Future<void> _quitChallenge(
+    BuildContext context,
+    WidgetRef ref,
+    Challenge challenge,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.quitChallenge),
+        content: Text(l10n.quitChallengeConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.no),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            child: Text(l10n.yes),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      if (SupabaseConfig.isConfigured) {
+        final uid = ref.read(authUserIdProvider);
+        if (uid != null) {
+          final engine = ref.read(challengeEngineProvider);
+          await engine.quitChallenge(uid);
+        }
+      } else {
+        await ref.read(challengeProgressRepositoryProvider).clear();
+      }
+
+      ref.invalidate(activeChallengeProgressModelProvider);
+      ref.invalidate(activeChallengeProgressProvider);
+
+      if (!context.mounted) return;
+      if (shouldShowAppBarLeading(context)) {
+        context.pop();
+      } else {
+        context.go('/dashboard');
+      }
+    }
+  }
 }
 
 /// Detail view for a community challenge: title, description, join, leaderboard.
@@ -383,17 +448,14 @@ class _CommunityChallengeDetailViewState
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '${widget.challenge.title}: ${l10n.joined}',
-          ),
-        ),
+        SnackBar(content: Text('${widget.challenge.title}: ${l10n.joined}')),
       );
     } catch (e) {
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l10n.somethingWentWrong)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.somethingWentWrong)));
     } finally {
       if (mounted) setState(() => _isJoining = false);
     }
@@ -404,10 +466,12 @@ class _CommunityChallengeDetailViewState
     final l10n = AppLocalizations.of(context)!;
     final metaAsync = ref.watch(communityChallengesWithMetaProvider);
     final hasJoined = metaAsync.maybeWhen(
-      data: (list) => list
-          .where((e) => e.challenge.id == widget.challengeId)
-          .map((e) => e.hasJoined)
-          .firstOrNull ?? false,
+      data: (list) =>
+          list
+              .where((e) => e.challenge.id == widget.challengeId)
+              .map((e) => e.hasJoined)
+              .firstOrNull ??
+          false,
       orElse: () => false,
     );
 
@@ -435,11 +499,12 @@ class _CommunityChallengeDetailViewState
                     Row(
                       children: [
                         _Chip(
-                            label: l10n.daysCount(widget.challenge.durationDays)),
+                          label: l10n.daysCount(widget.challenge.durationDays),
+                        ),
                         const SizedBox(width: AppSpacing.sm),
                         _Chip(
-                            label:
-                                l10n.bonusXpLabel(widget.challenge.rewardXp)),
+                          label: l10n.bonusXpLabel(widget.challenge.rewardXp),
+                        ),
                       ],
                     ),
                   ],
@@ -455,14 +520,14 @@ class _CommunityChallengeDetailViewState
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     side: BorderSide(
-                        color: AppTheme.accent.withValues(alpha: 0.6)),
+                      color: AppTheme.accent.withValues(alpha: 0.6),
+                    ),
                   ),
                   child: _isJoining
                       ? const SizedBox(
                           height: 20,
                           width: 20,
-                          child:
-                              CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : Text(l10n.joinChallenge),
                 ),

@@ -17,6 +17,7 @@ class ProfileRepository implements IProfileRepository {
 
   final Box<UserProfile> _box;
 
+  @override
   Future<UserProfile> loadOrCreate() async {
     final existing = _box.get(_key);
     if (existing != null) return existing;
@@ -27,8 +28,10 @@ class ProfileRepository implements IProfileRepository {
     return created;
   }
 
+  @override
   UserProfile? readSync() => _box.get(_key);
 
+  @override
   Future<void> save(UserProfile profile) async {
     await _box.put(_key, profile);
     AppLog.debug('Profile saved', {

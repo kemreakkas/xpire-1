@@ -65,7 +65,7 @@ class DashboardPage extends ConsumerWidget {
     return ResponsiveCenter(
       padding: const EdgeInsets.all(AppSpacing.grid),
       maxWidth: 820,
-      child: content,
+      child: SingleChildScrollView(child: content),
     );
   }
 }
@@ -93,18 +93,15 @@ class _DashboardContent extends ConsumerWidget {
     final today = dateOnly(DateTime.now());
     final todayKey = yyyymmdd(today);
 
-    final completedTodayIds = completionsAv.maybeWhen(
-      data: (list) {
-        final ids = <String>{};
-        for (final c in list) {
-          if (yyyymmdd(c.date) == todayKey) {
-            ids.add(c.goalId);
-          }
+    final completedTodayIds = <String>{};
+    final completionsList = completionsAv.asData?.value;
+    if (completionsList != null) {
+      for (final c in completionsList) {
+        if (yyyymmdd(c.date) == todayKey) {
+          completedTodayIds.add(c.goalId);
         }
-        return ids;
-      },
-      orElse: () => <String>{},
-    );
+      }
+    }
 
     final isWebWide = Responsive.isWebWide(context);
     final spacing = isWebWide ? AppSpacing.lg : AppSpacing.md;
@@ -140,7 +137,7 @@ class _DashboardContent extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${profile.currentXp} / $requiredXp XP',
+                        '${profile.currentXp} / ${l10n.xpCount(requiredXp)}',
                         style: Theme.of(context).textTheme.labelLarge,
                       ),
                       if (rankLabel != null) ...[
@@ -190,7 +187,7 @@ class _DashboardContent extends ConsumerWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        '${profile.totalXp} XP',
+                        l10n.xpCount(profile.totalXp),
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -308,20 +305,20 @@ class _DashboardContent extends ConsumerWidget {
         SizedBox(height: spacing),
         Text(l10n.activeGoals, style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: AppSpacing.sm),
-        Expanded(
-          child: goals.isEmpty
-              ? const _EmptyGoals()
-              : ListView.separated(
-                  itemCount: goals.length,
-                  separatorBuilder: (_, __) =>
-                      const SizedBox(height: AppSpacing.sm),
-                  itemBuilder: (context, index) {
-                    final goal = goals[index];
-                    final doneToday = completedTodayIds.contains(goal.id);
-                    return _GoalCard(goal: goal, doneToday: doneToday);
-                  },
-                ),
-        ),
+        if (goals.isEmpty)
+          const _EmptyGoals()
+        else
+          ListView.separated(
+            itemCount: goals.length,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
+            itemBuilder: (context, index) {
+              final goal = goals[index];
+              final doneToday = completedTodayIds.contains(goal.id);
+              return _GoalCard(goal: goal, doneToday: doneToday);
+            },
+          ),
       ],
     );
   }
@@ -365,7 +362,9 @@ class _TodaysAIPlanSection extends ConsumerWidget {
               children: plan.goalTemplates.map((t) {
                 return ActionChip(
                   label: Text(
-                    '${t.title} · ${t.baseXp} XP',
+                    '${t.title} · ${l10n.xpCount(t.baseXp)}',
+                    softWrap: true,
+                    maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                   ),
                   onPressed: () {
@@ -516,6 +515,7 @@ class _ActiveChallengeSection extends ConsumerWidget {
         error: (_, __) => const SizedBox.shrink(),
       );
     }
+
     final progress = ref.watch(activeChallengeProgressProvider);
     if (progress == null || progress.completed) return const SizedBox.shrink();
     final daysRemaining =
@@ -729,8 +729,9 @@ class _GoalCard extends ConsumerWidget {
                     runSpacing: 8,
                     children: [
                       _Chip(text: _categoryLabel(l10n, goal.category)),
+                      _Chip(text: l10n.daily),
                       _Chip(text: _difficultyLabel(l10n, goal.difficulty)),
-                      _Chip(text: '${goal.baseXp} XP'),
+                      _Chip(text: l10n.xpCount(goal.baseXp)),
                     ],
                   ),
                 ],
@@ -756,6 +757,7 @@ class _GoalCard extends ConsumerWidget {
                         GoalCompleteStatus.alreadyCompleted =>
                           l10n.todayAlreadyCompleted,
                         GoalCompleteStatus.goalNotFound => l10n.goalNotFound,
+                        GoalCompleteStatus.failure => l10n.somethingWentWrong,
                       };
                       ScaffoldMessenger.of(
                         context,

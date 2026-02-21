@@ -54,15 +54,17 @@ class AuthController {
     if (user == null) {
       throw Exception('Sign up did not return a user');
     }
-    await _client.from('users').insert({
-      'id': user.id,
-      'email': user.email ?? email,
-      'level': 1,
-      'xp': 0,
-      'total_xp': 0,
-      'streak': 0,
-    });
-    AppLog.info('Registered and created user row', {'email': email});
+
+    // Fallback: If trigger fails or isn't installed, insert manually from client.
+    try {
+      await _client.from('users').upsert({
+        'id': user.id,
+        'email': user.email ?? email,
+      });
+      AppLog.info('User profile ensured via app upsert fallback.');
+    } catch (_) {}
+
+    AppLog.info('Registered user via Supabase', {'email': email});
   }
 
   Future<void> login(String email, String password) async {

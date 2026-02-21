@@ -7,11 +7,15 @@ class WeeklyLeaderboardEntry {
     required this.rank,
     required this.userId,
     required this.username,
-    required this.weeklyXp,
+    required this.level,
+    required this.streak,
+    required this.totalXp,
   });
 
   final int rank;
   final String userId;
   final String username;
-  final int weeklyXp;
+  final int level;
+  final int streak;
+  final int totalXp;
 }

@@ -17,7 +17,13 @@ class MobileShell extends ConsumerWidget {
   final GoRouterState routerState;
   final Widget child;
 
-  static const _navPaths = ['/dashboard', '/challenges', '/leaderboard', '/stats', '/profile'];
+  static const _navPaths = [
+    '/dashboard',
+    '/challenges',
+    '/leaderboard',
+    '/stats',
+    '/profile',
+  ];
 
   int _selectedIndex(String location) {
     if (location.startsWith('/challenges')) return 1;
@@ -49,26 +55,15 @@ class MobileShell extends ConsumerWidget {
     final isDetail = _isDetailRoute(location);
 
     return Scaffold(
-      appBar: isDetail
-          ? null
-          : AppBar(
-              title: Text(title),
-              actions: [
-                if (SupabaseConfig.isConfigured)
-                  IconButton(
-                    icon: const Icon(Icons.add),
-                    onPressed: () => context.push('/goals/create'),
-                    tooltip: l10n.newGoal,
-                  ),
-              ],
-            ),
+      appBar: isDetail ? null : AppBar(title: Text(title)),
       body: isDetail
           ? child
           : Padding(
               padding: const EdgeInsets.all(AppSpacing.grid),
               child: child,
             ),
-      floatingActionButton: !isDetail && location == '/dashboard' && SupabaseConfig.isConfigured
+      floatingActionButton:
+          !isDetail && location == '/dashboard' && SupabaseConfig.isConfigured
           ? FloatingActionButton(
               onPressed: () => context.push('/goals/create'),
               child: const Icon(Icons.add),

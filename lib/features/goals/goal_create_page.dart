@@ -11,6 +11,7 @@ import '../../core/ui/app_theme.dart';
 import '../../data/models/goal.dart';
 import '../../data/models/goal_template.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/ui/app_radius.dart';
 import '../../state/providers.dart';
 
 class GoalCreatePage extends ConsumerStatefulWidget {
@@ -53,12 +54,13 @@ class _GoalCreatePageState extends ConsumerState<GoalCreatePage> {
     if (pendingId != null && !_pendingTemplateApplied) {
       _pendingTemplateApplied = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Can't call DefaultTabController.of(context) here because context doesn't contain it yet.
+        // Needs a builder or we just ignore animating to 0 since custom form is already index 0.
         final content = ref.read(contentRepositoryProvider);
         final t = content.getTemplateById(pendingId);
         if (t != null && mounted) {
           _applyTemplate(t);
           ref.read(pendingTemplateIdProvider.notifier).set(null);
-          DefaultTabController.of(context).animateTo(0);
         } else {
           _pendingTemplateApplied = false;
         }
@@ -133,20 +135,22 @@ class _GoalCreatePageState extends ConsumerState<GoalCreatePage> {
       });
       setState(() => _selectedTemplate = null);
       ref.invalidate(goalsControllerProvider);
-      if (!context.mounted) return;
+      if (!mounted) return;
       context.go('/dashboard');
     } catch (e, st) {
       debugPrint('Create goal error: $e');
       debugPrint('$st');
-      if (context.mounted) {
+      if (mounted) {
         final l10n = AppLocalizations.of(context)!;
-        final message = e is Exception ? '${l10n.somethingWentWrong}: ${e.toString()}' : l10n.somethingWentWrong;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
+        final message = e is Exception
+            ? '${l10n.somethingWentWrong}: ${e.toString()}'
+            : l10n.somethingWentWrong;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
       }
     } finally {
-      if (context.mounted) setState(() => _isSaving = false);
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 }
@@ -209,7 +213,11 @@ class _CustomFormTab extends StatelessWidget {
           TextFormField(
             controller: titleController,
             textInputAction: TextInputAction.done,
-            decoration: InputDecoration(labelText: l10n.title),
+            decoration: InputDecoration(
+              labelText: l10n.title,
+              prefixIcon: const Icon(Icons.edit_note),
+              border: OutlineInputBorder(borderRadius: AppRadius.mdRadius),
+            ),
             validator: (v) {
               final value = (v ?? '').trim();
               if (value.isEmpty) return l10n.enterTitle;
@@ -219,8 +227,12 @@ class _CustomFormTab extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.md),
           DropdownButtonFormField<GoalCategory>(
-            value: category,
-            decoration: InputDecoration(labelText: l10n.category),
+            initialValue: category,
+            decoration: InputDecoration(
+              labelText: l10n.category,
+              prefixIcon: const Icon(Icons.category_outlined),
+              border: OutlineInputBorder(borderRadius: AppRadius.mdRadius),
+            ),
             items: GoalCategory.values
                 .map(
                   (c) => DropdownMenuItem(
@@ -233,8 +245,12 @@ class _CustomFormTab extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.md),
           DropdownButtonFormField<GoalDifficulty>(
-            value: difficulty,
-            decoration: InputDecoration(labelText: l10n.difficulty),
+            initialValue: difficulty,
+            decoration: InputDecoration(
+              labelText: l10n.difficulty,
+              prefixIcon: const Icon(Icons.speed_outlined),
+              border: OutlineInputBorder(borderRadius: AppRadius.mdRadius),
+            ),
             items: GoalDifficulty.values
                 .map(
                   (d) => DropdownMenuItem(
@@ -319,7 +335,7 @@ class _TemplateTab extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.all(AppSpacing.grid),
           child: DropdownButtonFormField<GoalCategory?>(
-            value: categoryFilter,
+            initialValue: categoryFilter,
             decoration: InputDecoration(labelText: l10n.category),
             items: [
               DropdownMenuItem<GoalCategory?>(
@@ -392,8 +408,11 @@ class _TemplateCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '${template.baseXp} XP',
-                    style: Theme.of(context).textTheme.labelLarge,
+                    l10n.xpCount(template.baseXp),
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: AppTheme.accent,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),

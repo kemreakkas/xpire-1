@@ -9,34 +9,46 @@ import '../models/weekly_leaderboard_entry.dart';
 class SupabaseLeaderboardRepository {
   SupabaseLeaderboardRepository();
 
-  SupabaseClient get _client => Supabase.instance.client;
+  SupabaseClient? get _client =>
+      SupabaseConfig.isConfigured ? Supabase.instance.client : null;
 
   /// Challenge leaderboard: top 10 + full list for current user rank.
   /// Sort: completed_days desc, joined_at asc.
   /// Returns up to 10 for display; [currentUserRank] is set if current user is not in top 10.
-  Future<({
-    List<ChallengeLeaderboardEntry> top10,
-    ChallengeLeaderboardEntry? currentUserEntry,
-  })> getChallengeLeaderboard(String challengeId) async {
+  Future<
+    ({
+      List<ChallengeLeaderboardEntry> top10,
+      ChallengeLeaderboardEntry? currentUserEntry,
+    })
+  >
+  getChallengeLeaderboard(String challengeId) async {
     if (!SupabaseConfig.isConfigured) {
+      return (top10: <ChallengeLeaderboardEntry>[], currentUserEntry: null);
+    }
+    final client = _client;
+    if (client == null) {
       return (top10: <ChallengeLeaderboardEntry>[], currentUserEntry: null);
     }
     try {
       List<dynamic> raw;
       try {
-        raw = await _client
-            .from('challenge_participants')
-            .select('*, users(username, full_name)')
-            .eq('challenge_id', challengeId)
-            .order('completed_days', ascending: false)
-            .order('joined_at', ascending: true) as List<dynamic>;
+        raw =
+            await client
+                    .from('challenge_participants')
+                    .select('*, users(username, full_name)')
+                    .eq('challenge_id', challengeId)
+                    .order('completed_days', ascending: false)
+                    .order('joined_at', ascending: true)
+                as List<dynamic>;
       } catch (_) {
-        raw = await _client
-            .from('challenge_participants')
-            .select()
-            .eq('challenge_id', challengeId)
-            .order('completed_days', ascending: false)
-            .order('joined_at', ascending: true) as List<dynamic>;
+        raw =
+            await client
+                    .from('challenge_participants')
+                    .select()
+                    .eq('challenge_id', challengeId)
+                    .order('completed_days', ascending: false)
+                    .order('joined_at', ascending: true)
+                as List<dynamic>;
       }
       final list = raw.whereType<Map<String, dynamic>>().toList();
       final entries = <ChallengeLeaderboardEntry>[];
@@ -44,15 +56,12 @@ class SupabaseLeaderboardRepository {
         entries.add(_challengeEntryFromRow(list[i], i + 1));
       }
       final top10 = entries.take(10).toList();
-      final uid = _client.auth.currentUser?.id;
+      final uid = client.auth.currentUser?.id;
       ChallengeLeaderboardEntry? currentUserEntry;
       if (uid != null) {
         final idx = entries.indexWhere((e) => e.userId == uid);
         if (idx >= 0) {
-          currentUserEntry = _challengeEntryFromRow(
-            list[idx],
-            idx + 1,
-          );
+          currentUserEntry = _challengeEntryFromRow(list[idx], idx + 1);
         }
       }
       return (top10: top10, currentUserEntry: currentUserEntry);
@@ -86,15 +95,17 @@ class SupabaseLeaderboardRepository {
     );
   }
 
-  /// Weekly global leaderboard: top 20. Order by weekly_xp desc.
+  /// Global leaderboard: top 20. Order by total_xp desc.
   Future<List<WeeklyLeaderboardEntry>> getWeeklyLeaderboard() async {
     if (!SupabaseConfig.isConfigured) return [];
+    final client = _client;
+    if (client == null) return [];
     try {
       const limit = 20;
-      final res = await _client
-          .from('weekly_leaderboard')
+      final res = await client
+          .from('global_leaderboard')
           .select()
-          .order('weekly_xp', ascending: false)
+          .order('total_xp', ascending: false)
           .limit(limit);
       final list = (res as List<dynamic>).whereType<Map<String, dynamic>>();
       var rank = 1;
@@ -102,8 +113,10 @@ class SupabaseLeaderboardRepository {
           .map((row) => _weeklyEntryFromRow(row, rank++))
           .toList(growable: false);
     } catch (e, st) {
-      AppLog.error('Weekly leaderboard fetch failed', e, st);
-      return [];
+      AppLog.error('Global leaderboard fetch failed', e, st);
+      // Fırlatarak (rethrow) UI'ın "Bir şeyler yanlış gitti" demesini sağlıyoruz,
+      // böylece boş tablo ile teknik hata arasındaki ayrımı bilebiliriz.
+      rethrow;
     }
   }
 
@@ -111,15 +124,19 @@ class SupabaseLeaderboardRepository {
     Map<String, dynamic> row,
     int rank,
   ) {
-    final userId = row['user_id'] as String? ?? '';
-    final rawName = row['username'] ?? row['display_name'] ?? userId;
-    final username = rawName is String ? rawName : userId;
-    final weeklyXp = (row['weekly_xp'] as num?)?.toInt() ?? 0;
+    final userId = row['id'] as String? ?? '';
+    final rawName = row['username'] ?? row['full_name'] ?? userId;
+    final username = rawName is String && rawName.isNotEmpty ? rawName : userId;
+    final totalXp = (row['total_xp'] as num?)?.toInt() ?? 0;
+    final level = (row['level'] as num?)?.toInt() ?? 1;
+    final streak = (row['streak'] as num?)?.toInt() ?? 0;
     return WeeklyLeaderboardEntry(
       rank: rank,
       userId: userId,
       username: username,
-      weeklyXp: weeklyXp,
+      level: level,
+      streak: streak,
+      totalXp: totalXp,
     );
   }
 }

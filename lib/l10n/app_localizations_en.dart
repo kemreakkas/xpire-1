@@ -222,6 +222,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get challengeCreated => 'Challenge created.';
 
   @override
+  String get quitChallenge => 'Quit routine';
+
+  @override
+  String get quitChallengeConfirm =>
+      'Are you sure you want to quit this routine?';
+
+  @override
+  String get yes => 'Yes';
+
+  @override
+  String get no => 'No';
+
+  @override
   String get challengeDescription => 'Description';
 
   @override
@@ -630,4 +643,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rankLabel => 'Rank';
+
+  @override
+  String xpCount(Object count) {
+    return '$count XP';
+  }
 }

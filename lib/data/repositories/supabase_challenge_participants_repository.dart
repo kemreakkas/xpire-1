@@ -9,15 +9,20 @@ import '../models/challenge_participant.dart';
 class SupabaseChallengeParticipantsRepository {
   SupabaseChallengeParticipantsRepository();
 
-  SupabaseClient get _client => Supabase.instance.client;
-  String? get _userId => _client.auth.currentUser?.id;
+  SupabaseClient? get _client =>
+      SupabaseConfig.isConfigured ? Supabase.instance.client : null;
+
+  String? get _userId => _client?.auth.currentUser?.id;
+
   static const _uuid = Uuid();
 
   /// My active participants (is_completed = false).
   Future<List<ChallengeParticipant>> listMyActive(String userId) async {
     if (!SupabaseConfig.isConfigured) return [];
+    final client = _client;
+    if (client == null) return [];
     try {
-      final res = await _client
+      final res = await client
           .from('challenge_participants')
           .select()
           .eq('user_id', userId)
@@ -30,18 +35,22 @@ class SupabaseChallengeParticipantsRepository {
           .toList(growable: false);
     } catch (e, st) {
       AppLog.error('Challenge participants listMyActive failed', e, st);
-      rethrow;
+      return [];
     }
   }
 
   /// Participant counts per challenge_id (for community list).
-  Future<Map<String, int>> getParticipantCounts(List<String> challengeIds) async {
+  Future<Map<String, int>> getParticipantCounts(
+    List<String> challengeIds,
+  ) async {
     if (!SupabaseConfig.isConfigured || challengeIds.isEmpty) {
       return {for (final id in challengeIds) id: 0};
     }
+    final client = _client;
+    if (client == null) return {for (final id in challengeIds) id: 0};
     try {
       final counts = <String, int>{for (final id in challengeIds) id: 0};
-      final res = await _client
+      final res = await client
           .from('challenge_participants')
           .select('challenge_id')
           .inFilter('challenge_id', challengeIds);
@@ -64,11 +73,13 @@ class SupabaseChallengeParticipantsRepository {
   /// Join a challenge: insert into challenge_participants.
   Future<ChallengeParticipant?> join(String userId, String challengeId) async {
     if (!SupabaseConfig.isConfigured) return null;
-    if (userId != _userId) return null;
+    final client = _client;
+    final uid = _userId;
+    if (client == null || uid == null || userId != uid) return null;
     try {
       final id = _uuid.v4();
       final now = DateTime.now().toUtc().toIso8601String();
-      await _client.from('challenge_participants').insert({
+      await client.from('challenge_participants').insert({
         'id': id,
         'challenge_id': challengeId,
         'user_id': userId,
@@ -95,8 +106,10 @@ class SupabaseChallengeParticipantsRepository {
   /// Check if user has already joined a challenge (any row for user_id + challenge_id).
   Future<bool> hasJoined(String userId, String challengeId) async {
     if (!SupabaseConfig.isConfigured) return false;
+    final client = _client;
+    if (client == null) return false;
     try {
-      final res = await _client
+      final res = await client
           .from('challenge_participants')
           .select('id')
           .eq('user_id', userId)

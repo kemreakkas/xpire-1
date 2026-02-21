@@ -121,8 +121,9 @@ class _CommunityChallengeCreatePageState
                     ),
                     maxLines: 3,
                     validator: (v) {
-                      if ((v ?? '').trim().isEmpty)
+                      if ((v ?? '').trim().isEmpty) {
                         return l10n.enterDescription;
+                      }
                       return null;
                     },
                   ),
@@ -134,7 +135,7 @@ class _CommunityChallengeCreatePageState
                         .map(
                           (d) => DropdownMenuItem(
                             value: d,
-                            child: Text('$d days'),
+                            child: Text(l10n.daysCount(d)),
                           ),
                         )
                         .toList(),
@@ -146,8 +147,10 @@ class _CommunityChallengeCreatePageState
                     decoration: InputDecoration(labelText: l10n.rewardXp),
                     items: [50, 100, 150, 200, 250]
                         .map(
-                          (x) =>
-                              DropdownMenuItem(value: x, child: Text('$x XP')),
+                          (x) => DropdownMenuItem(
+                            value: x,
+                            child: Text(l10n.xpCount(x)),
+                          ),
                         )
                         .toList(),
                     onChanged: (v) => setState(() => _rewardXp = v ?? 100),

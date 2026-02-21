@@ -58,8 +58,8 @@ class LeaderboardPage extends ConsumerWidget {
                 child: Text(
                   l10n.noLeaderboardYet,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.textSecondary,
-                      ),
+                    color: AppTheme.textSecondary,
+                  ),
                 ),
               ),
             );
@@ -73,18 +73,18 @@ class LeaderboardPage extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      l10n.weeklyLeaderboard,
+                      l10n.leaderboard,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.textPrimary,
-                          ),
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     Text(
-                      l10n.weekly,
+                      'Tüm Zamanlar – En Yüksek XP',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppTheme.textSecondary,
-                          ),
+                        color: AppTheme.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: AppSpacing.lg),
                     Container(
@@ -107,8 +107,7 @@ class LeaderboardPage extends ConsumerWidget {
                               ),
                             _WeeklyLeaderboardRow(
                               entry: list[i],
-                              isCurrentUser:
-                                  currentUserId == list[i].userId,
+                              isCurrentUser: currentUserId == list[i].userId,
                             ),
                           ],
                         ],
@@ -156,51 +155,66 @@ class _WeeklyLeaderboardRow extends StatelessWidget {
                     color: const Color(0xFFEAB308),
                   )
                 : isTop3
-                    ? Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _rankHighlightColor(entry.rank)
-                              .withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                            color: _rankHighlightColor(entry.rank)
-                                .withValues(alpha: 0.5),
-                            width: 1,
-                          ),
-                        ),
-                        child: Text(
-                          '${entry.rank}',
-                          style: theme.labelMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: _rankHighlightColor(entry.rank),
-                          ),
-                        ),
-                      )
-                    : Text(
-                        '${entry.rank}',
-                        style: theme.bodyMedium?.copyWith(
-                          color: AppTheme.textSecondary,
-                        ),
+                ? Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _rankHighlightColor(
+                        entry.rank,
+                      ).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: _rankHighlightColor(
+                          entry.rank,
+                        ).withValues(alpha: 0.5),
+                        width: 1,
                       ),
+                    ),
+                    child: Text(
+                      '${entry.rank}',
+                      style: theme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: _rankHighlightColor(entry.rank),
+                      ),
+                    ),
+                  )
+                : Text(
+                    '${entry.rank}',
+                    style: theme.bodyMedium?.copyWith(
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
-            child: Text(
-              entry.username,
-              style: theme.bodyMedium?.copyWith(
-                color: isCurrentUser
-                    ? AppTheme.accent
-                    : AppTheme.textPrimary,
-                fontWeight: isCurrentUser ? FontWeight.w600 : null,
-              ),
-              overflow: TextOverflow.ellipsis,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  entry.username,
+                  style: theme.bodyMedium?.copyWith(
+                    color: isCurrentUser
+                        ? AppTheme.accent
+                        : AppTheme.textPrimary,
+                    fontWeight: isCurrentUser ? FontWeight.w600 : null,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  'Sev. ${entry.level} • ${entry.streak} gün seri',
+                  style: theme.bodySmall?.copyWith(
+                    color: AppTheme.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
             ),
           ),
           Text(
-            '${entry.weeklyXp} XP',
+            '${entry.totalXp} XP',
             style: theme.labelMedium?.copyWith(
               color: AppTheme.textSecondary,
               fontWeight: isTop3 ? FontWeight.w600 : null,

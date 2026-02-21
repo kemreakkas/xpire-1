@@ -20,7 +20,7 @@ import '../features/challenges/challenge_list_page.dart';
 import '../features/challenges/challenge_detail_page.dart';
 import '../features/challenges/community_challenge_create_page.dart';
 import '../features/leaderboard/leaderboard_page.dart';
-import '../features/onboarding/onboarding_page.dart';
+// onboarding removed
 import '../features/premium/premium_page.dart';
 import '../features/profile/profile_page.dart';
 import '../features/stats/stats_page.dart';
@@ -516,18 +516,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         return null;
       }
 
-      // 2b. Just left login/register: send to onboarding or dashboard by profile.
+      // 2b. Just left login/register: send to dashboard.
       if (onAuthScreen) {
-        if (profileLoading) return '/dashboard';
-        if (profileExistsAndComplete) return '/dashboard';
-        return '/onboarding';
+        return '/dashboard';
       }
 
-      // 2c. Protected routes: profile must exist and onboarding completed, else onboarding.
+      // 2c. Protected routes: profile must exist.
       if (profileLoading) return null;
-      if (profile != null && !profile.onboardingCompleted) {
-        return '/onboarding';
-      }
       return null;
     },
     routes: [
@@ -541,11 +536,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) =>
             buildAppPage(context, state, const RegisterPage()),
       ),
-      GoRoute(
-        path: '/onboarding',
-        pageBuilder: (context, state) =>
-            buildAppPage(context, state, const OnboardingPage()),
-      ),
+
       ShellRoute(
         builder: (context, state, child) =>
             AppShell(routerState: state, child: child),

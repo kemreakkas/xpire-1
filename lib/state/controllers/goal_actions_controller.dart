@@ -26,8 +26,9 @@ class GoalActionsController extends AsyncNotifier<void> {
 
     final completionRepo = ref.read(completionRepositoryProvider);
     final completionsBefore = completionRepo.listSync();
-    final wasFirstCompletionToday = !completionsBefore
-        .any((c) => yyyymmdd(c.date) == todayKey);
+    final wasFirstCompletionToday = !completionsBefore.any(
+      (c) => yyyymmdd(c.date) == todayKey,
+    );
 
     if (completionRepo.containsId(completionId)) {
       return const GoalCompleteResult(
@@ -80,10 +81,11 @@ class GoalActionsController extends AsyncNotifier<void> {
       final active = progressRepo.getCurrent();
       final goalIdSet = active?.goalIds.toSet() ?? <String>{};
       final completionsBefore = completionRepo.listSync();
-      final challenge = active != null ? content.getChallengeById(active.challengeId) : null;
-      final oldDaysCompleted = active != null &&
-              goalIdSet.contains(goalId) &&
-              challenge != null
+      final challenge = active != null
+          ? content.getChallengeById(active.challengeId)
+          : null;
+      final oldDaysCompleted =
+          active != null && goalIdSet.contains(goalId) && challenge != null
           ? _daysCompletedForChallenge(
               active.startedAt,
               challenge.durationDays,
@@ -93,12 +95,16 @@ class GoalActionsController extends AsyncNotifier<void> {
           : 0;
 
       await completionRepo.upsert(completion);
-      await profileRepo.save(result.profile);
+      try {
+        await profileRepo.save(result.profile);
+      } catch (e, st) {
+        AppLog.error('Failed to save profile after goal completion', e, st);
+      }
 
-      ref.read(analyticsServiceProvider).track(
-            AnalyticsEvents.goalCompleted,
-            {'goal_id': goalId, 'category': goal.category.name},
-          );
+      ref.read(analyticsServiceProvider).track(AnalyticsEvents.goalCompleted, {
+        'goal_id': goalId,
+        'category': goal.category.name,
+      });
       final newCompletions = completionRepo.listSync();
       if (active != null &&
           goalIdSet.contains(goalId) &&
@@ -111,12 +117,9 @@ class GoalActionsController extends AsyncNotifier<void> {
         );
         if (newDaysCompleted > oldDaysCompleted) {
           ref.read(analyticsServiceProvider).track(
-                AnalyticsEvents.challengeDayCompleted,
-                {
-                  'challenge_id': active.challengeId,
-                  'day': newDaysCompleted,
-                },
-              );
+            AnalyticsEvents.challengeDayCompleted,
+            {'challenge_id': active.challengeId, 'day': newDaysCompleted},
+          );
         }
       }
 
@@ -126,7 +129,9 @@ class GoalActionsController extends AsyncNotifier<void> {
       if (SupabaseConfig.isConfigured) {
         final uid = ref.read(authUserIdProvider);
         if (uid != null) {
-          await ref.read(challengeEngineProvider).recordDayCompleted(
+          await ref
+              .read(challengeEngineProvider)
+              .recordDayCompleted(
                 userId: uid,
                 goalId: goalId,
                 completionDate: completionDate,
@@ -157,11 +162,11 @@ class GoalActionsController extends AsyncNotifier<void> {
 
     return response ??
         const GoalCompleteResult(
-        status: GoalCompleteStatus.goalNotFound,
-        earnedXp: 0,
-        leveledUp: false,
-        newLevel: 0,
-      );
+          status: GoalCompleteStatus.failure,
+          earnedXp: 0,
+          leveledUp: false,
+          newLevel: 0,
+        );
   }
 
   static int _daysCompletedForChallenge(

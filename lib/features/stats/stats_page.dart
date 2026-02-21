@@ -103,26 +103,28 @@ class StatsPage extends ConsumerWidget {
               ),
             );
           }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ...topCards.map(
-                (c) => Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                  child: c,
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ...topCards.map(
+                  (c) => Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: c,
+                  ),
                 ),
-              ),
-              _ActiveChallengeIndicator(),
-              const SizedBox(height: AppSpacing.sm),
-              _CompletedChallengesCard(),
-              const SizedBox(height: AppSpacing.sm),
-              _CompletionsByCategorySection(
-                byCategory: stats.completionsByCategory,
-                l10n: l10n,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              _AdvancedStatsSection(stats: stats, l10n: l10n),
-            ],
+                _ActiveChallengeIndicator(),
+                const SizedBox(height: AppSpacing.sm),
+                _CompletedChallengesCard(),
+                const SizedBox(height: AppSpacing.sm),
+                _CompletionsByCategorySection(
+                  byCategory: stats.completionsByCategory,
+                  l10n: l10n,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                _AdvancedStatsSection(stats: stats, l10n: l10n),
+              ],
+            ),
           );
         },
       ),

@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-enum GoalCompleteStatus { success, alreadyCompleted, goalNotFound }
+enum GoalCompleteStatus { success, alreadyCompleted, goalNotFound, failure }
 
 @immutable
 class GoalCompleteResult {

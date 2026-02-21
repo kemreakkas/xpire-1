@@ -209,12 +209,15 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }) async {
     final p = ref.read(profileControllerProvider).value;
     if (p == null) return;
+
+    final profileNotifier = ref.read(profileControllerProvider.notifier);
+    final notificationService = ref.read(notificationServiceProvider);
+
     final updated = p.copyWith(
       reminderEnabled: reminderEnabled,
       reminderTime: reminderTime,
     );
-    await ref.read(profileControllerProvider.notifier).save(updated);
-    final notificationService = ref.read(notificationServiceProvider);
+    await profileNotifier.save(updated);
     if (notificationService.isSupported) {
       if (reminderEnabled) {
         await notificationService.scheduleDailyReminder(

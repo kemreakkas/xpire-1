@@ -127,7 +127,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get createCustom => 'Özel oluştur';
 
   @override
-  String get useTemplate => 'Şablon kullan';
+  String get useTemplate => 'Önerilenleri kullan';
 
   @override
   String get title => 'Başlık';
@@ -152,7 +152,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String fromTemplate(String title) {
-    return 'Şablondan: $title';
+    return 'Önerilen: $title';
   }
 
   @override
@@ -162,47 +162,47 @@ class AppLocalizationsTr extends AppLocalizations {
   String get weekly => 'Haftalık';
 
   @override
-  String get challenges => 'Macereler';
+  String get challenges => 'Rutinler';
 
   @override
   String get challengesIntro =>
-      'Yapılandırılmış maceralarla alışkanlık edinin. Tüm hedefleri tamamlayarak bonus XP kazanın.';
+      'Yapılandırılmış rutinlerle alışkanlık edinin. Tüm hedefleri tamamlayarak bonus XP kazanın.';
 
   @override
   String get challengesEmpty =>
-      'Şu an macera bulunmuyor. Başlamak için panelden hedef oluşturabilirsiniz.';
+      'Şu an rutin bulunmuyor. Başlamak için panelden hedef oluşturabilirsiniz.';
 
   @override
-  String get challengesEmptyTitle => 'Henüz macera yok';
+  String get challengesEmptyTitle => 'Henüz rutin yok';
 
   @override
-  String get challengesNoActiveTitle => 'Henüz Aktif Macera Yok';
+  String get challengesNoActiveTitle => 'Henüz Aktif Rutin Yok';
 
   @override
   String get challengesNoActiveSubtitle =>
-      'Bonus XP kazanmaya başlamak için ilk 7 günlük maceranıza başlayın.';
+      'Bonus XP kazanmaya başlamak için ilk 7 günlük rutininize başlayın.';
 
   @override
   String get challengesNoActiveSubtitleShort =>
-      'İlk 7 günlük maceranıza başlayın.';
+      'İlk 7 günlük rutininize başlayın.';
 
   @override
-  String get browseChallenges => 'Maceralara Göz At';
+  String get browseChallenges => 'Rutinlere Göz At';
 
   @override
-  String get activeChallengesSection => 'Aktif Maceralar';
+  String get activeChallengesSection => 'Aktif Rutinler';
 
   @override
-  String get myActiveChallengesSection => 'Aktif Maceralarım';
+  String get myActiveChallengesSection => 'Aktif Rutinlerim';
 
   @override
-  String get communityChallengesSection => 'Topluluk Maceraları';
+  String get communityChallengesSection => 'Topluluk Rutinleri';
 
   @override
-  String get startNewChallengeSection => 'Yeni Macera Başlat';
+  String get startNewChallengeSection => 'Yeni Rutin Başlat';
 
   @override
-  String get scrollToTemplates => 'Şablonlara git';
+  String get scrollToTemplates => 'Önerilenlere git';
 
   @override
   String participantsCount(int count) {
@@ -216,16 +216,29 @@ class AppLocalizationsTr extends AppLocalizations {
   String get joined => 'Katıldın';
 
   @override
-  String get createChallenge => 'Macera Oluştur';
+  String get createChallenge => 'Rutin Oluştur';
 
   @override
-  String get challengeCreated => 'Macera oluşturuldu.';
+  String get challengeCreated => 'Rutin oluşturuldu.';
+
+  @override
+  String get quitChallenge => 'Rutinden vazgeç';
+
+  @override
+  String get quitChallengeConfirm =>
+      'Bu rutinden vazgeçmek istediğinize emin misiniz?';
+
+  @override
+  String get yes => 'Evet';
+
+  @override
+  String get no => 'Hayır';
 
   @override
   String get challengeDescription => 'Açıklama';
 
   @override
-  String get challengeDescriptionHint => 'Macera hakkında kısa açıklama';
+  String get challengeDescriptionHint => 'Rutin hakkında kısa açıklama';
 
   @override
   String get enterDescription => 'Bir açıklama girin';
@@ -238,17 +251,17 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get dailyChallengeLimitReached =>
-      'Günlük macera oluşturma limitine ulaştınız (günde 2).';
+      'Günlük rutin oluşturma limitine ulaştınız (günde 2).';
 
   @override
   String get dailyLimitTooltip => 'Günlük limit doldu. Yarın tekrar deneyin.';
 
   @override
-  String get startChallengeButton => 'Macerayı Başlat';
+  String get startChallengeButton => 'Rutini Başlat';
 
   @override
   String get challengesLoadError =>
-      'Maceralar yüklenemedi. Tekrar denemek için çekin.';
+      'Rutinler yüklenemedi. Tekrar denemek için çekin.';
 
   @override
   String daysBonusXp(int days, int xp) {
@@ -278,13 +291,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get reminderTime => 'Hatırlatma saati';
 
   @override
-  String get recommendedChallenges => 'Önerilen maceralar';
+  String get recommendedChallenges => 'Önerilen rutinler';
 
   @override
   String get recommendedGoals => 'Önerilen hedefler';
 
   @override
-  String get startChallenge => 'Macera başlat';
+  String get startChallenge => 'Rutin başlat';
 
   @override
   String dayProgress(int current, int total) {
@@ -492,10 +505,10 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get activeChallenge => 'Aktif macera';
+  String get activeChallenge => 'Aktif rutin';
 
   @override
-  String get challengesCompleted => 'Tamamlanan maceralar';
+  String get challengesCompleted => 'Tamamlanan rutinler';
 
   @override
   String get completionsByCategory => 'Kategoriye göre tamamlamalar';
@@ -513,13 +526,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get last30Days => 'Son 30 gün';
 
   @override
-  String get challengeNotFound => 'Macera bulunamadı';
+  String get challengeNotFound => 'Rutin bulunamadı';
 
   @override
-  String get goalsInThisChallenge => 'Bu maceradaki hedefler';
+  String get goalsInThisChallenge => 'Bu rutindeki hedefler';
 
   @override
-  String get challengeCompleted => 'Macera tamamlandı!';
+  String get challengeCompleted => 'Rutin tamamlandı!';
 
   @override
   String bonusXpAddedWhenFinished(int xp) {
@@ -527,10 +540,10 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get youAreDoingThisChallenge => 'Bu macerayı yapıyorsunuz';
+  String get youAreDoingThisChallenge => 'Bu rutini yapıyorsunuz';
 
   @override
-  String get alreadyHaveActiveChallenge => 'Zaten aktif bir maceranız var.';
+  String get alreadyHaveActiveChallenge => 'Zaten aktif bir rutininiz var.';
 
   @override
   String challengeStartedMessage(String title, int xp) {
@@ -627,4 +640,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get rankLabel => 'Sıra';
+
+  @override
+  String xpCount(Object count) {
+    return '$count XP';
+  }
 }

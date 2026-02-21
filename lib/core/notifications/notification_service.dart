@@ -13,7 +13,8 @@ class NotificationService {
   static const String _channelId = 'xpire_reminder';
   static const String _channelName = 'Xpire Reminders';
 
-  final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _plugin =
+      FlutterLocalNotificationsPlugin();
   bool _initialized = false;
 
   bool get isSupported => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
@@ -34,15 +35,16 @@ class NotificationService {
     if (Platform.isAndroid) {
       await _plugin
           .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
+            AndroidFlutterLocalNotificationsPlugin
+          >()
           ?.createNotificationChannel(
-        const AndroidNotificationChannel(
-          _channelId,
-          _channelName,
-          description: 'Daily reminder to complete your goals',
-          importance: Importance.defaultImportance,
-        ),
-      );
+            const AndroidNotificationChannel(
+              _channelId,
+              _channelName,
+              description: 'Daily reminder to complete your goals',
+              importance: Importance.defaultImportance,
+            ),
+          );
     }
 
     try {
@@ -61,8 +63,10 @@ class NotificationService {
     if (!isSupported) return false;
     if (!_initialized) await initialize();
     if (Platform.isIOS) {
-      final impl = _plugin.resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin>();
+      final impl = _plugin
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >();
       final result = await impl?.requestPermissions(alert: true, badge: true);
       return result == true;
     }
@@ -92,7 +96,14 @@ class NotificationService {
     final minute = parts.length > 1 ? int.tryParse(parts[1]) ?? 0 : 0;
 
     final now = tz.TZDateTime.now(tz.local);
-    var scheduled = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+    var scheduled = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      hour,
+      minute,
+    );
     if (scheduled.isBefore(now) || scheduled.isAtSameMomentAs(now)) {
       scheduled = scheduled.add(const Duration(days: 1));
     }
@@ -112,7 +123,7 @@ class NotificationService {
       bodyForStreak(streak),
       scheduled,
       details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       matchDateTimeComponents: DateTimeComponents.time,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,

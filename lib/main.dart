@@ -34,10 +34,7 @@ Future<void> main() async {
 
       // Do NOT hardcode keys. Set via --dart-define or Vercel env.
       if (supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty) {
-        await Supabase.initialize(
-          url: supabaseUrl,
-          anonKey: supabaseAnonKey,
-        );
+        await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
       }
 
       await Hive.initFlutter();
@@ -58,8 +55,9 @@ Future<void> main() async {
       final profileBox = await Hive.openBox<UserProfile>('profile');
       final goalsBox = await Hive.openBox<Goal>('goals');
       final completionsBox = await Hive.openBox<GoalCompletion>('completions');
-      final activeChallengeBox =
-          await Hive.openBox<ActiveChallenge>('active_challenge');
+      final activeChallengeBox = await Hive.openBox<ActiveChallenge>(
+        'active_challenge',
+      );
 
       if (!kIsWeb) {
         final notificationService = NotificationService();

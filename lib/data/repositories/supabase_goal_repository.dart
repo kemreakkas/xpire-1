@@ -12,29 +12,35 @@ class SupabaseGoalRepository {
 
   final Box<Goal> _box;
 
-  SupabaseClient get _client => Supabase.instance.client;
+  SupabaseClient? get _client =>
+      SupabaseConfig.isConfigured ? Supabase.instance.client : null;
 
-  String? get _userId => _client.auth.currentUser?.id;
+  String? get _userId => _client?.auth.currentUser?.id;
 
   Future<void> syncFromCloud() async {
     if (!SupabaseConfig.isConfigured) return;
     final uid = _userId;
-    if (uid == null) return;
+    final client = _client;
+    if (uid == null || client == null) return;
     try {
-      final res = await _client
+      final res = await client
           .from('goals')
           .select()
           .eq('user_id', uid)
           .eq('is_active', true)
           .order('created_at', ascending: false);
       final list = res as List<dynamic>;
-      await _box.clear();
+      // Only clear and replace if we actually got data or if we are sure we want to sync.
+      // For now, we update local Hive with what's on the server.
       for (final row in list) {
-        if (row['deleted_at'] != null) continue;
+        if (row['deleted_at'] != null) {
+          await _box.delete(row['id']);
+          continue;
+        }
         final goal = _goalFromRow(row as Map<String, dynamic>);
         await _box.put(goal.id, goal);
       }
-      AppLog.debug('Goals synced', list.length);
+      AppLog.debug('Goals synced from cloud', list.length);
     } catch (e, st) {
       AppLog.error('Goals sync failed', e, st);
     }
@@ -49,14 +55,19 @@ class SupabaseGoalRepository {
   }
 
   Future<void> upsert(Goal goal) async {
-    final uid = _userId;
     if (SupabaseConfig.isConfigured) {
-      if (uid == null) {
-        AppLog.error('Goal upsert failed: no user', null, StackTrace.current);
+      final client = _client;
+      final uid = _userId;
+      if (client == null || uid == null) {
+        AppLog.error(
+          'Goal upsert failed: no user/client',
+          null,
+          StackTrace.current,
+        );
         throw StateError('Not signed in. Sign in to save goals.');
       }
       try {
-        await _client.from('goals').upsert({
+        await client.from('goals').upsert({
           'id': goal.id,
           'user_id': uid,
           'title': goal.title,
@@ -70,24 +81,61 @@ class SupabaseGoalRepository {
           'deleted_at': null,
         });
       } catch (e, st) {
-        AppLog.error('Goal upsert failed', e, st);
-        if (e is Exception) {
-          debugPrint('Supabase goal error: $e');
+        final errStr = e.toString();
+        // If it's a foreign key error due to missing public.users row, auto create the row and retry
+        if (errStr.contains('goals_user_id_fkey') &&
+            errStr.contains('not present in table "users"')) {
+          AppLog.info(
+            'Missing user row detected during goal insert. Creating now...',
+          );
+          try {
+            await client.from('users').upsert({
+              'id': uid,
+              'email': client.auth.currentUser?.email,
+            });
+            // Retry goal upsert
+            await client.from('goals').upsert({
+              'id': goal.id,
+              'user_id': uid,
+              'title': goal.title,
+              'category': _categoryToStr(goal.category),
+              'difficulty': _difficultyToStr(goal.difficulty),
+              'base_xp': goal.baseXp,
+              'frequency': 'daily',
+              'is_active': goal.isActive,
+              'created_at': goal.createdAt.toIso8601String(),
+              'updated_at': DateTime.now().toIso8601String(),
+              'deleted_at': null,
+            });
+            AppLog.info('Goal upsert retry successful.');
+          } catch (retryE) {
+            AppLog.error('Goal upsert retry failed', retryE, st);
+            rethrow;
+          }
+        } else {
+          AppLog.error('Goal upsert failed', e, st);
+          if (e is Exception) {
+            debugPrint('Supabase goal error: $e');
+          }
+          rethrow;
         }
-        rethrow;
       }
     }
     await _box.put(goal.id, goal);
     AppLog.debug('Goal upsert', goal.id);
   }
 
-  Future<void> setActive({required String goalId, required bool isActive}) async {
+  Future<void> setActive({
+    required String goalId,
+    required bool isActive,
+  }) async {
     final existing = _box.get(goalId);
     if (existing == null) return;
+    final client = _client;
     final uid = _userId;
-    if (SupabaseConfig.isConfigured && uid != null) {
+    if (client != null && uid != null) {
       try {
-        await _client
+        await client
             .from('goals')
             .update({
               'is_active': isActive,

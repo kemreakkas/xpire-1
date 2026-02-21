@@ -506,6 +506,30 @@ abstract class AppLocalizations {
   /// **'Challenge created.'**
   String get challengeCreated;
 
+  /// No description provided for @quitChallenge.
+  ///
+  /// In en, this message translates to:
+  /// **'Quit routine'**
+  String get quitChallenge;
+
+  /// No description provided for @quitChallengeConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to quit this routine?'**
+  String get quitChallengeConfirm;
+
+  /// No description provided for @yes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get yes;
+
+  /// No description provided for @no.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get no;
+
   /// No description provided for @challengeDescription.
   ///
   /// In en, this message translates to:
@@ -1231,6 +1255,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rank'**
   String get rankLabel;
+
+  /// No description provided for @xpCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} XP'**
+  String xpCount(Object count);
 }
 
 class _AppLocalizationsDelegate

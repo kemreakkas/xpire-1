@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/config/supabase_config.dart';
 import '../../features/auth/auth_controller.dart';
 import '../../core/ui/app_spacing.dart';
 import '../../core/ui/app_theme.dart';
@@ -43,21 +42,7 @@ class _ChallengeListPageState extends ConsumerState<ChallengeListPage> {
     final isWebWide = Responsive.isWebWide(context);
     final padding = isWebWide ? _webSectionSpacing : AppSpacing.grid;
 
-    if (!SupabaseConfig.isConfigured) {
-      return Material(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        child: Center(
-          child: Padding(
-            padding: EdgeInsets.all(padding),
-            child: Text(
-              l10n.supabaseNotConfigured,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-          ),
-        ),
-      );
-    }
+    // Supabase not configured check removed to allow offline usage.
 
     final myActiveAsync = ref.watch(myActiveChallengesWithDetailsProvider);
     final communityAsync = ref.watch(communityChallengesWithMetaProvider);
@@ -66,7 +51,8 @@ class _ChallengeListPageState extends ConsumerState<ChallengeListPage> {
       data: (v) => v,
       orElse: () => 0,
     );
-    final createLimitReached = createdToday >= 2;
+    final createLimitReached =
+        createdToday >= 50; // Increased limit so user can add more than 2
 
     return Material(
       color: Theme.of(context).scaffoldBackgroundColor,
@@ -131,7 +117,7 @@ class _ChallengeListPageState extends ConsumerState<ChallengeListPage> {
                           ),
                           Tooltip(
                             message: createLimitReached
-                                ? l10n.dailyLimitTooltip
+                                ? l10n.dailyChallengeLimitReached
                                 : l10n.createChallenge,
                             child: FilledButton.tonal(
                               onPressed: createLimitReached
@@ -472,70 +458,70 @@ class _CommunityCardState extends ConsumerState<_CommunityCard> {
         onTap: () => context.push('/challenges/${c.id}'),
         borderRadius: BorderRadius.circular(8),
         child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              c.title,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              c.description,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: AppTheme.textSecondary,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Row(
-              children: [
-                Text(
-                  '${c.durationDays} days',
-                  style: theme.textTheme.labelMedium,
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                c.title,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
                 ),
-                const SizedBox(width: AppSpacing.md),
-                Text(
-                  l10n.bonusXp(c.rewardXp),
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: AppTheme.accent,
-                    fontWeight: FontWeight.w600,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                c.description,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppTheme.textSecondary,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Row(
+                children: [
+                  Text(
+                    l10n.daysCount(c.durationDays),
+                    style: theme.textTheme.labelMedium,
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Text(
+                    l10n.xpCount(c.rewardXp),
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: AppTheme.accent,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                l10n.participantsCount(widget.item.participantCount),
+                style: theme.textTheme.labelSmall,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              OutlinedButton(
+                onPressed: hasJoined || _isJoining ? null : _join,
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  side: BorderSide(
+                    color: hasJoined
+                        ? theme.colorScheme.outline
+                        : AppTheme.accent.withValues(alpha: 0.6),
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              l10n.participantsCount(widget.item.participantCount),
-              style: theme.textTheme.labelSmall,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            OutlinedButton(
-              onPressed: hasJoined || _isJoining ? null : _join,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                side: BorderSide(
-                  color: hasJoined
-                      ? theme.colorScheme.outline
-                      : AppTheme.accent.withValues(alpha: 0.6),
-                ),
+                child: _isJoining
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(hasJoined ? l10n.joined : l10n.joinChallenge),
               ),
-              child: _isJoining
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(hasJoined ? l10n.joined : l10n.joinChallenge),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 }

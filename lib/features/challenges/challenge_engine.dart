@@ -101,8 +101,9 @@ class ChallengeEngine {
     final startDay = dateOnly(active.startedAt);
     final dayIndex = completionDay.difference(startDay).inDays;
     // currentDay is 1-based; dayIndex 0 = day 1.
-    if (dayIndex != active.currentDay - 1)
+    if (dayIndex != active.currentDay - 1) {
       return; // not the current expected day
+    }
 
     var completedDays = active.completedDays + 1;
     var currentDay = active.currentDay + 1;
@@ -161,6 +162,21 @@ class ChallengeEngine {
   /// Get active progress for user (from Supabase).
   Future<ChallengeProgress?> getActiveProgress(String userId) =>
       progressRepository.getActive(userId);
+
+  /// Quits the current active challenge.
+  Future<void> quitChallenge(String userId) async {
+    final active = await progressRepository.getActive(userId);
+    if (active == null) return;
+
+    final now = DateTime.now();
+    // Mark as failed to consider it "quit" or cancelled.
+    final failed = active.copyWith(failedAt: now);
+    await progressRepository.upsert(failed);
+    _analytics?.track(AnalyticsEvents.challengeFailed, {
+      'challenge_id': active.challengeId,
+      'quit': true,
+    });
+  }
 
   /// Count completed challenges for stats.
   Future<int> countCompleted(String userId) =>

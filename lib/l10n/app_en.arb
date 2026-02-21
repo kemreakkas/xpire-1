@@ -78,6 +78,10 @@
   "joined": "Joined",
   "createChallenge": "Create Challenge",
   "challengeCreated": "Challenge created.",
+  "quitChallenge": "Quit routine",
+  "quitChallengeConfirm": "Are you sure you want to quit this routine?",
+  "yes": "Yes",
+  "no": "No",
   "challengeDescription": "Description",
   "challengeDescriptionHint": "Short description of the challenge",
   "enterDescription": "Enter a description",
@@ -250,5 +254,6 @@
   "yourRank": "Your rank",
   "completedDaysLabel": "Days",
   "noLeaderboardYet": "No entries yet",
-  "rankLabel": "Rank"
+  "rankLabel": "Rank",
+  "xpCount": "{count} XP"
 }

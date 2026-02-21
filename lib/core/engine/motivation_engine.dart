@@ -9,68 +9,68 @@ class MotivationEngine {
   MotivationEngine._();
 
   static const List<String> _lowEnergy = [
-    "Small steps still count. One tiny win today.",
-    "You don't have to be perfect. Just show up.",
-    "Rest is part of the plan. Light effort still moves you forward.",
-    "Low energy? Pick one thing and call it a win.",
-    "Today can be gentle. One goal is enough.",
-    "Your best today might look different. That's okay.",
-    "Even 5 minutes of progress is progress.",
-    "Be kind to yourself. Tomorrow is a new day.",
-    "One small action beats zero. You've got this.",
-    "Pause if you need to. Then take one step.",
+    "Küçük adımlar da sayılır. Bugün minik bir galibiyet elde et.",
+    "Mükemmel olmak zorunda değilsin. Sadece elinden geleni yap.",
+    "Dinlenmek de planın bir parçası. Hafif bir çaba bile seni ileri taşır.",
+    "Enerjin düşük mü? Sadece bir şey seç ve onu başar.",
+    "Bugün kendine nazik davran. Tek bir hedef yeterli.",
+    "Bugünkü en iyi performansın farklı görünebilir. Bu sorun değil.",
+    "5 dakikalık bir ilerleme bile bir ilerlemedir.",
+    "Kendine iyi davran. Yarın yepyeni bir gün.",
+    "Küçük bir adım atmak, hiç atmamaktan iyidir. Bunu yapabilirsin.",
+    "Gerekiyorsa durakla. Sonra bir adım daha at.",
   ];
 
   static const List<String> _highEnergy = [
-    "You're on fire. Channel that energy into one big win.",
-    "High energy day! Stack two or three wins.",
-    "Momentum is real. Ride it with intention.",
-    "Today's the day to push a little harder.",
-    "Your streak shows you can do this. Go get it.",
-    "Use this energy wisely. One focused block.",
-    "You're building something. Keep the rhythm.",
-    "Strong days compound. Make today count.",
-    "You've got the drive. Point it at one clear goal.",
-    "Energy is a gift. Spend it on what matters.",
+    "Harika gidiyorsun. Bu enerjiyi büyük bir başarıya dönüştür.",
+    "Enerjik bir gün! İki veya üç galibiyeti üst üste diz.",
+    "Rüzgarı arkana aldın. Bunu bilinçli bir şekilde kullan.",
+    "Bugün sınırlarını biraz daha zorlama günü.",
+    "Serin, bunu yapabileceğini kanıtlıyor. Git ve al.",
+    "Bu enerjiyi akıllıca kullan. Odaklanmış tek bir adım.",
+    "Bir şeyler inşa ediyorsun. Ritmi koru.",
+    "Güçlü günler birikerek büyür. Bugünü değerli kıl.",
+    "Arzun var. Bunu net bir hedefe yönelt.",
+    "Enerji bir hediyedir. Onu önemli şeyler için harca.",
   ];
 
   static const List<String> _streakBoost = [
-    "Your streak is proof you're consistent. Keep it alive.",
-    "Another day, another win. Protect the streak.",
-    "You didn't come this far to stop now.",
-    "That streak didn't build itself. You did.",
-    "One more day. You know the drill.",
-    "Streak says you're serious. Show up again today.",
-    "Consistency beats intensity. You're living it.",
-    "Don't break the chain. One goal today.",
-    "Your streak is your reputation. Honor it.",
-    "Every day you show up, you get stronger.",
+    "Serin, ne kadar istikrarlı olduğunun kanıtıdır. Devam et.",
+    "Yeni bir gün, yeni bir galibiyet. Seriyi koru.",
+    "Buraya kadar durmak için gelmedin.",
+    "Bu seriyi sen inşa ettin, kendiliğinden olmadı.",
+    "Bir gün daha. Ne yapman gerektiğini biliyorsun.",
+    "Bu seri kararlı olduğunu gösteriyor. Bugün de kendini göster.",
+    "İstikrar yoğunluğu yener. Bunu tam şu an yaşıyorsun.",
+    "Zinciri kırma. Bugün yalnızca tek bir hedef.",
+    "Bu seri senin başarın. Onu gururla taşı.",
+    "Vazgeçmediğin her gün daha da güçleniyorsun.",
   ];
 
   static const List<String> _comebackMode = [
-    "Today is day one again. That's okay.",
-    "Every comeback starts with a single step.",
-    "No streak? No problem. Start fresh today.",
-    "The best time to start was yesterday. The next best is now.",
-    "One goal today. That's your comeback.",
-    "You're not starting from zero. You're starting with experience.",
-    "Comeback mode: one win, then build from there.",
-    "Yesterday doesn't define today. Show up now.",
-    "Reset and go. One small win counts.",
-    "Your next streak starts with today.",
+    "Bugün yeniden birinci gün. Bu tamamen normal.",
+    "Her büyük geri dönüş sağlam bir adımla başlar.",
+    "Serin mi bozuldu? Hiç sorun değil. Bugün taze bir başlangıç yap.",
+    "Başlamak için en iyi zaman dündü. İkinci en iyi zaman ise şu an.",
+    "Bugün için tek bir hedef. Geri dönüşün bu olacak.",
+    "Sıfırdan değil, biriktirdiğin tecrübelerle başlıyorsun.",
+    "Geri dönüş modu: Önce bir galibiyet al, ardından devamını getir.",
+    "Bugün nasıl olacağını dün belirlemez. Harekete geç.",
+    "Sıfırla ve yeniden başla. Küçük bir başarı bile önemlidir.",
+    "Bir sonraki büyük serin bugünden itibaren başlıyor.",
   ];
 
   static const List<String> _consistencyReward = [
-    "You've been showing up. That's the real win.",
-    "Consistency is the superpower. You're using it.",
-    "Steady progress beats rare heroics. You're on track.",
-    "Your habits are forming. Keep the rhythm.",
-    "Another day of small wins. That's how change happens.",
-    "You're building trust in yourself. One day at a time.",
-    "The middle is where most quit. You're still here.",
-    "Regular effort compounds. You're proof.",
-    "Not flashy, but reliable. That's you.",
-    "Keep the engine running. Today matters.",
+    "Sürekli çaba gösteriyorsun. Asıl zafer işte budur.",
+    "İstikrar senin süper gücün. Onu en iyi şekilde kullanıyorsun.",
+    "İstikrarlı ilerleme her zaman kazanır. Doğru yoldasın.",
+    "Alışkanlıkların kökleşiyor. Ritmini asla bozma.",
+    "Küçük adımlarla geçen bir gün daha. Asıl gelişim böyle olur.",
+    "Kendine olan inancını her gün bir adım daha büyütüyorsun.",
+    "Çoğu insan yarı yolda bırakır. Fakat sen hâlâ buradasın.",
+    "Düzenli çabanın ne kadar işe yaradığının canlı kanıtısın.",
+    "Gösterişli olmasa da kararlısın. Bu senin gücün.",
+    "Motoru sıcak tut. Bugün gerçekten çok önemli.",
   ];
 
   /// Picks a message based on [profile] and [streak]. Uses streak_boost when
@@ -84,7 +84,9 @@ class MotivationEngine {
   static MotivationGroup _selectGroup(SmartProfile profile, int streak) {
     if (streak > 5) return MotivationGroup.streakBoost;
     if (streak == 0) return MotivationGroup.comebackMode;
-    if (profile.energyLevel == EnergyLevel.low) return MotivationGroup.lowEnergy;
+    if (profile.energyLevel == EnergyLevel.low) {
+      return MotivationGroup.lowEnergy;
+    }
     if (profile.energyLevel == EnergyLevel.high) {
       return MotivationGroup.highEnergy;
     }

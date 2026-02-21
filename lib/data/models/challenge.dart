@@ -5,7 +5,7 @@ import 'goal.dart';
 /// A challenge pack: multiple template goals over a fixed duration. Completion gives bonus XP.
 @immutable
 class Challenge {
-  Challenge({
+  const Challenge({
     required this.id,
     required this.title,
     required this.description,
@@ -22,9 +22,11 @@ class Challenge {
   final String description;
   final int durationDays;
   final GoalCategory category;
+
   /// Template IDs to instantiate as goals when user starts this challenge.
   final List<String> templateGoalIds;
   final bool isPremium;
+
   /// XP awarded when challenge is completed.
   final int bonusXp;
   final DateTime? createdAt;

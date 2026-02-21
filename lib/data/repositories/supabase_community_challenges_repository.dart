@@ -17,17 +17,21 @@ const int maxChallengesCreatedPerDay = 2;
 class SupabaseCommunityChallengesRepository {
   SupabaseCommunityChallengesRepository();
 
-  SupabaseClient get _client => Supabase.instance.client;
-  String? get _userId => _client.auth.currentUser?.id;
+  SupabaseClient? get _client =>
+      SupabaseConfig.isConfigured ? Supabase.instance.client : null;
+
+  String? get _userId => _client?.auth.currentUser?.id;
 
   /// Count challenges created by [userId] today (UTC).
   Future<int> countCreatedTodayByUser(String userId) async {
     if (!SupabaseConfig.isConfigured) return 0;
+    final client = _client;
+    if (client == null) return 0;
     try {
       final now = DateTime.now().toUtc();
       final startOfToday = DateTime.utc(now.year, now.month, now.day);
       final startStr = startOfToday.toIso8601String();
-      final res = await _client
+      final res = await client
           .from('challenges')
           .select('id')
           .eq('created_by', userId)
@@ -36,7 +40,7 @@ class SupabaseCommunityChallengesRepository {
       return list.length;
     } catch (e, st) {
       AppLog.error('Community challenges countCreatedToday failed', e, st);
-      rethrow;
+      return 0;
     }
   }
 
@@ -51,22 +55,30 @@ class SupabaseCommunityChallengesRepository {
     if (!SupabaseConfig.isConfigured) {
       throw StateError('Supabase not configured');
     }
-    if (userId != _userId) throw StateError('Not signed in');
+    final client = _client;
+    final uid = _userId;
+    if (client == null || uid == null || userId != uid) {
+      throw StateError('Not signed in');
+    }
     final count = await countCreatedTodayByUser(userId);
     if (count >= maxChallengesCreatedPerDay) {
       throw DailyChallengeLimitException();
     }
     try {
       final now = DateTime.now().toUtc().toIso8601String();
-      final res = await _client.from('challenges').insert({
-        'title': title,
-        'description': description,
-        'duration_days': durationDays,
-        'reward_xp': rewardXp,
-        'created_by': userId,
-        'is_public': true,
-        'created_at': now,
-      }).select().single();
+      final res = await client
+          .from('challenges')
+          .insert({
+            'title': title,
+            'description': description,
+            'duration_days': durationDays,
+            'reward_xp': rewardXp,
+            'created_by': userId,
+            'is_public': true,
+            'created_at': now,
+          })
+          .select()
+          .single();
       AppLog.debug('Community challenge created', res['id']);
       return _fromRow(res);
     } catch (e, st) {
@@ -79,11 +91,10 @@ class SupabaseCommunityChallengesRepository {
   /// Get challenges by ids (for resolving my active participants).
   Future<Map<String, CommunityChallenge>> getByIds(List<String> ids) async {
     if (!SupabaseConfig.isConfigured || ids.isEmpty) return {};
+    final client = _client;
+    if (client == null) return {};
     try {
-      final res = await _client
-          .from('challenges')
-          .select()
-          .inFilter('id', ids);
+      final res = await client.from('challenges').select().inFilter('id', ids);
       final list = res as List<dynamic>;
       final map = <String, CommunityChallenge>{};
       for (final row in list) {
@@ -102,8 +113,10 @@ class SupabaseCommunityChallengesRepository {
   /// List public challenges (from challenges table).
   Future<List<CommunityChallenge>> listPublic() async {
     if (!SupabaseConfig.isConfigured) return [];
+    final client = _client;
+    if (client == null) return [];
     try {
-      final res = await _client
+      final res = await client
           .from('challenges')
           .select()
           .eq('is_public', true)
@@ -115,15 +128,18 @@ class SupabaseCommunityChallengesRepository {
           .toList(growable: false);
     } catch (e, st) {
       AppLog.error('Community challenges listPublic failed', e, st);
-      rethrow;
+      return [];
     }
   }
 
   /// List public challenges with participant count from challenge_with_counts view.
-  Future<List<({CommunityChallenge challenge, int participantCount})>> listPublicWithCounts() async {
+  Future<List<({CommunityChallenge challenge, int participantCount})>>
+  listPublicWithCounts() async {
     if (!SupabaseConfig.isConfigured) return [];
+    final client = _client;
+    if (client == null) return [];
     try {
-      final res = await _client
+      final res = await client
           .from('challenge_with_counts')
           .select()
           .eq('is_public', true)
@@ -133,7 +149,10 @@ class SupabaseCommunityChallengesRepository {
           .whereType<Map<String, dynamic>>()
           .map((row) {
             final c = _fromRow(row);
-            final count = (row['participant_count'] as num?)?.toInt() ?? (row['count'] as num?)?.toInt() ?? 0;
+            final count =
+                (row['participant_count'] as num?)?.toInt() ??
+                (row['count'] as num?)?.toInt() ??
+                0;
             return (challenge: c, participantCount: count);
           })
           .toList(growable: false);
