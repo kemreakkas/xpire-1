@@ -103,6 +103,24 @@ class SupabaseChallengeParticipantsRepository {
     }
   }
 
+  /// Leave a challenge: delete from challenge_participants.
+  Future<void> leave(String userId, String challengeId) async {
+    if (!SupabaseConfig.isConfigured) return;
+    final client = _client;
+    final uid = _userId;
+    if (client == null || uid == null || userId != uid) return;
+    try {
+      await client
+          .from('challenge_participants')
+          .delete()
+          .eq('user_id', userId)
+          .eq('challenge_id', challengeId);
+    } catch (e, st) {
+      AppLog.error('Challenge participants leave failed', e, st);
+      rethrow;
+    }
+  }
+
   /// Check if user has already joined a challenge (any row for user_id + challenge_id).
   Future<bool> hasJoined(String userId, String challengeId) async {
     if (!SupabaseConfig.isConfigured) return false;

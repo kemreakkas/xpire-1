@@ -54,6 +54,7 @@
     }
   },
   "daily": "Günlük",
+  "onceADay": "Günde 1 kez",
   "weekly": "Haftalık",
   "challenges": "Rutinler",
   "challengesIntro": "Yapılandırılmış rutinlerle alışkanlık edinin. Tüm hedefleri tamamlayarak bonus XP kazanın.",
@@ -107,7 +108,7 @@
   "reminderTime": "Hatırlatma saati",
   "recommendedChallenges": "Önerilen rutinler",
   "recommendedGoals": "Önerilen hedefler",
-  "startChallenge": "Rutin başlat",
+  "startChallenge": "Hedef başlat",
   "dayProgress": "Gün {current} / {total}",
   "@dayProgress": {
     "placeholders": {
@@ -138,6 +139,7 @@
   "noActiveGoals": "Henüz aktif hedef yok.\nİlk hedefinizi oluşturmak için + dokunun.",
   "noActiveGoalsTitle": "Henüz hedef yok",
   "noActiveGoalsDescription": "XP kazanmak ve seri oluşturmak için ilk hedefinizi ekleyin.",
+  "freeGoalLimitReached": "Ücretsiz limit: En fazla 10 aktif hedef ekleyebilirsiniz.",
   "goalsCompleted": "Tamamlanan hedef",
   "currentStreak": "Mevcut seri",
   "completedToday": "Bugün tamamlanan",

@@ -28,7 +28,6 @@ class SupabaseCompletionRepository {
           .eq('user_id', uid)
           .order('completed_at', ascending: false);
       final list = res as List<dynamic>;
-      await _box.clear();
       for (final row in list) {
         final c = _completionFromRow(row as Map<String, dynamic>);
         await _box.put(c.id, c);

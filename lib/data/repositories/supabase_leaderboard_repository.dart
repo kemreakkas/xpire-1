@@ -102,25 +102,36 @@ class SupabaseLeaderboardRepository {
     if (client == null) return [];
     try {
       const limit = 20;
-      final res = await client
-          .from('global_leaderboard')
-          .select()
-          .order('total_xp', ascending: false)
-          .limit(limit);
-      final list = (res as List<dynamic>).whereType<Map<String, dynamic>>();
+      List<dynamic> res;
+      try {
+        res =
+            await client
+                    .from('global_leaderboard')
+                    .select()
+                    .order('total_xp', ascending: false)
+                    .limit(limit)
+                as List<dynamic>;
+      } catch (_) {
+        res =
+            await client
+                    .from('users')
+                    .select('id, username, full_name, total_xp, level, streak')
+                    .order('total_xp', ascending: false)
+                    .limit(limit)
+                as List<dynamic>;
+      }
+      final list = res.whereType<Map<String, dynamic>>();
       var rank = 1;
       return list
-          .map((row) => _weeklyEntryFromRow(row, rank++))
+          .map((row) => _weeklyEntryFromGlobalLeaderboardRow(row, rank++))
           .toList(growable: false);
     } catch (e, st) {
       AppLog.error('Global leaderboard fetch failed', e, st);
-      // Fırlatarak (rethrow) UI'ın "Bir şeyler yanlış gitti" demesini sağlıyoruz,
-      // böylece boş tablo ile teknik hata arasındaki ayrımı bilebiliriz.
       rethrow;
     }
   }
 
-  WeeklyLeaderboardEntry _weeklyEntryFromRow(
+  WeeklyLeaderboardEntry _weeklyEntryFromGlobalLeaderboardRow(
     Map<String, dynamic> row,
     int rank,
   ) {

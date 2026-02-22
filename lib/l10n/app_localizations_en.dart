@@ -159,6 +159,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daily => 'Daily';
 
   @override
+  String get onceADay => 'Once a day';
+
+  @override
   String get weekly => 'Weekly';
 
   @override
@@ -297,7 +300,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recommendedGoals => 'Recommended goals';
 
   @override
-  String get startChallenge => 'Start a Challenge';
+  String get startChallenge => 'Start Goal';
 
   @override
   String dayProgress(int current, int total) {
@@ -335,6 +338,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get noActiveGoalsDescription =>
       'Create your first goal to start earning XP and building streaks.';
+
+  @override
+  String get freeGoalLimitReached => 'Free limit: max 10 active goals.';
 
   @override
   String get goalsCompleted => 'Goals completed';

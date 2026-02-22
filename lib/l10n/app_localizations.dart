@@ -392,6 +392,12 @@ abstract class AppLocalizations {
   /// **'Daily'**
   String get daily;
 
+  /// No description provided for @onceADay.
+  ///
+  /// In en, this message translates to:
+  /// **'Once a day'**
+  String get onceADay;
+
   /// No description provided for @weekly.
   ///
   /// In en, this message translates to:
@@ -647,7 +653,7 @@ abstract class AppLocalizations {
   /// No description provided for @startChallenge.
   ///
   /// In en, this message translates to:
-  /// **'Start a Challenge'**
+  /// **'Start Goal'**
   String get startChallenge;
 
   /// No description provided for @dayProgress.
@@ -703,6 +709,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create your first goal to start earning XP and building streaks.'**
   String get noActiveGoalsDescription;
+
+  /// No description provided for @freeGoalLimitReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Free limit: max 10 active goals.'**
+  String get freeGoalLimitReached;
 
   /// No description provided for @goalsCompleted.
   ///

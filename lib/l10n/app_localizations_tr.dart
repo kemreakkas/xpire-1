@@ -159,6 +159,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get daily => 'Günlük';
 
   @override
+  String get onceADay => 'Günde 1 kez';
+
+  @override
   String get weekly => 'Haftalık';
 
   @override
@@ -297,7 +300,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get recommendedGoals => 'Önerilen hedefler';
 
   @override
-  String get startChallenge => 'Rutin başlat';
+  String get startChallenge => 'Hedef başlat';
 
   @override
   String dayProgress(int current, int total) {
@@ -335,6 +338,10 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get noActiveGoalsDescription =>
       'XP kazanmak ve seri oluşturmak için ilk hedefinizi ekleyin.';
+
+  @override
+  String get freeGoalLimitReached =>
+      'Ücretsiz limit: En fazla 10 aktif hedef ekleyebilirsiniz.';
 
   @override
   String get goalsCompleted => 'Tamamlanan hedef';

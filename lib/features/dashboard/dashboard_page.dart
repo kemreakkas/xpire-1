@@ -94,7 +94,7 @@ class _DashboardContent extends ConsumerWidget {
     final todayKey = yyyymmdd(today);
 
     final completedTodayIds = <String>{};
-    final completionsList = completionsAv.asData?.value;
+    final completionsList = completionsAv.value;
     if (completionsList != null) {
       for (final c in completionsList) {
         if (yyyymmdd(c.date) == todayKey) {
@@ -102,6 +102,14 @@ class _DashboardContent extends ConsumerWidget {
         }
       }
     }
+
+    final sortedActiveGoals = List<Goal>.from(goals)
+      ..sort((a, b) {
+        final aDone = completedTodayIds.contains(a.id);
+        final bDone = completedTodayIds.contains(b.id);
+        if (aDone == bDone) return 0;
+        return aDone ? 1 : -1;
+      });
 
     final isWebWide = Responsive.isWebWide(context);
     final spacing = isWebWide ? AppSpacing.lg : AppSpacing.md;
@@ -257,14 +265,14 @@ class _DashboardContent extends ConsumerWidget {
                   ),
                 ),
                 Expanded(
-                  child: goals.isEmpty
+                  child: sortedActiveGoals.isEmpty
                       ? const _EmptyGoals()
                       : ListView.separated(
-                          itemCount: goals.length,
+                          itemCount: sortedActiveGoals.length,
                           separatorBuilder: (_, __) =>
                               const SizedBox(height: AppSpacing.sm),
                           itemBuilder: (context, index) {
-                            final goal = goals[index];
+                            final goal = sortedActiveGoals[index];
                             final doneToday = completedTodayIds.contains(
                               goal.id,
                             );
@@ -305,16 +313,16 @@ class _DashboardContent extends ConsumerWidget {
         SizedBox(height: spacing),
         Text(l10n.activeGoals, style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: AppSpacing.sm),
-        if (goals.isEmpty)
+        if (sortedActiveGoals.isEmpty)
           const _EmptyGoals()
         else
           ListView.separated(
-            itemCount: goals.length,
+            itemCount: sortedActiveGoals.length,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
             itemBuilder: (context, index) {
-              final goal = goals[index];
+              final goal = sortedActiveGoals[index];
               final doneToday = completedTodayIds.contains(goal.id);
               return _GoalCard(goal: goal, doneToday: doneToday);
             },
@@ -396,6 +404,14 @@ class _TodaysSuggestedGoalsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (goals.isEmpty) return const SizedBox.shrink();
     final l10n = AppLocalizations.of(context)!;
+    final sortedGoals = List<Goal>.from(goals)
+      ..sort((a, b) {
+        final aDone = completedTodayIds.contains(a.id);
+        final bDone = completedTodayIds.contains(b.id);
+        if (aDone == bDone) return 0;
+        return aDone ? 1 : -1;
+      });
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -404,7 +420,7 @@ class _TodaysSuggestedGoalsSection extends ConsumerWidget {
           style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: AppSpacing.sm),
-        ...goals.map(
+        ...sortedGoals.map(
           (goal) => Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.sm),
             child: _GoalCard(
@@ -700,15 +716,24 @@ class _StartChallengeCta extends StatelessWidget {
   }
 }
 
-class _GoalCard extends ConsumerWidget {
+class _GoalCard extends ConsumerStatefulWidget {
   const _GoalCard({required this.goal, required this.doneToday});
 
   final Goal goal;
   final bool doneToday;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_GoalCard> createState() => _GoalCardState();
+}
+
+class _GoalCardState extends ConsumerState<_GoalCard> {
+  bool _isCompleting = false;
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isInactive = widget.doneToday || _isCompleting;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
@@ -720,7 +745,7 @@ class _GoalCard extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    goal.title,
+                    widget.goal.title,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 4),
@@ -728,10 +753,12 @@ class _GoalCard extends ConsumerWidget {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      _Chip(text: _categoryLabel(l10n, goal.category)),
-                      _Chip(text: l10n.daily),
-                      _Chip(text: _difficultyLabel(l10n, goal.difficulty)),
-                      _Chip(text: l10n.xpCount(goal.baseXp)),
+                      _Chip(text: _categoryLabel(l10n, widget.goal.category)),
+                      _Chip(text: l10n.onceADay),
+                      _Chip(
+                        text: _difficultyLabel(l10n, widget.goal.difficulty),
+                      ),
+                      _Chip(text: l10n.xpCount(widget.goal.baseXp)),
                     ],
                   ),
                 ],
@@ -739,34 +766,42 @@ class _GoalCard extends ConsumerWidget {
             ),
             const SizedBox(width: AppSpacing.sm),
             FilledButton(
-              onPressed: doneToday
+              onPressed: isInactive
                   ? null
                   : () async {
-                      final result = await ref
-                          .read(goalActionsControllerProvider.notifier)
-                          .completeGoal(goalId: goal.id);
-                      if (!context.mounted) return;
-                      final msg = switch (result.status) {
-                        GoalCompleteStatus.success =>
-                          result.leveledUp
-                              ? l10n.xpEarnedLevelUp(
-                                  result.earnedXp,
-                                  result.newLevel,
-                                )
-                              : l10n.xpEarned(result.earnedXp),
-                        GoalCompleteStatus.alreadyCompleted =>
-                          l10n.todayAlreadyCompleted,
-                        GoalCompleteStatus.goalNotFound => l10n.goalNotFound,
-                        GoalCompleteStatus.failure => l10n.somethingWentWrong,
-                      };
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text(msg)));
-                      if (result.leveledUp && context.mounted) {
-                        showLevelUpOverlay(context, newLevel: result.newLevel);
+                      setState(() => _isCompleting = true);
+                      try {
+                        final result = await ref
+                            .read(goalActionsControllerProvider.notifier)
+                            .completeGoal(goalId: widget.goal.id);
+                        if (!context.mounted) return;
+                        final msg = switch (result.status) {
+                          GoalCompleteStatus.success =>
+                            result.leveledUp
+                                ? l10n.xpEarnedLevelUp(
+                                    result.earnedXp,
+                                    result.newLevel,
+                                  )
+                                : l10n.xpEarned(result.earnedXp),
+                          GoalCompleteStatus.alreadyCompleted =>
+                            l10n.todayAlreadyCompleted,
+                          GoalCompleteStatus.goalNotFound => l10n.goalNotFound,
+                          GoalCompleteStatus.failure => l10n.somethingWentWrong,
+                        };
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text(msg)));
+                        if (result.leveledUp && context.mounted) {
+                          showLevelUpOverlay(
+                            context,
+                            newLevel: result.newLevel,
+                          );
+                        }
+                      } finally {
+                        if (mounted) setState(() => _isCompleting = false);
                       }
                     },
-              child: Text(doneToday ? l10n.done : l10n.complete),
+              child: Text(widget.doneToday ? l10n.done : l10n.complete),
             ),
           ],
         ),

@@ -112,6 +112,22 @@ class _GoalCreatePageState extends ConsumerState<GoalCreatePage> {
     setState(() => _isSaving = true);
 
     try {
+      final profile = ref.read(profileControllerProvider).value;
+      if (profile != null && !profile.isPremiumEffective) {
+        final existingGoals = ref.read(goalsControllerProvider).value ?? [];
+        final activeCount = existingGoals.where((g) => g.isActive).length;
+        if (activeCount >= 10) {
+          if (mounted) {
+            final l10n = AppLocalizations.of(context)!;
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(l10n.freeGoalLimitReached)));
+          }
+          setState(() => _isSaving = false);
+          return;
+        }
+      }
+
       final xpService = ref.read(xpServiceProvider);
       final title = _titleController.text.trim();
       final now = DateTime.now();

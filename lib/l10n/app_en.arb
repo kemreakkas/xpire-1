@@ -54,6 +54,7 @@
     }
   },
   "daily": "Daily",
+  "onceADay": "Once a day",
   "weekly": "Weekly",
   "challenges": "Challenges",
   "challengesIntro": "Build habits with structured challenges. Complete all goals to earn bonus XP.",
@@ -107,7 +108,7 @@
   "reminderTime": "Reminder time",
   "recommendedChallenges": "Recommended challenges",
   "recommendedGoals": "Recommended goals",
-  "startChallenge": "Start a Challenge",
+  "startChallenge": "Start Goal",
   "dayProgress": "Day {current} / {total}",
   "@dayProgress": {
     "placeholders": {
@@ -138,6 +139,7 @@
   "noActiveGoals": "No active goals yet.\nTap + to create your first one.",
   "noActiveGoalsTitle": "No goals yet",
   "noActiveGoalsDescription": "Create your first goal to start earning XP and building streaks.",
+  "freeGoalLimitReached": "Free limit: max 10 active goals.",
   "goalsCompleted": "Goals completed",
   "currentStreak": "Current streak",
   "completedToday": "Completed today",

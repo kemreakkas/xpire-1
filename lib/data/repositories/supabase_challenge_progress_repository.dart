@@ -45,15 +45,15 @@ class SupabaseChallengeProgressRepository {
     final client = _client;
     if (client == null || uid == null || progress.userId != uid) return;
     try {
-      await client
-          .from('challenge_participants')
-          .update({
-            'current_day': progress.currentDay,
-            'completed_days': progress.completedDays,
-            'is_completed': progress.isCompleted,
-          })
-          .eq('id', progress.id)
-          .eq('user_id', uid);
+      await client.from('challenge_participants').upsert({
+        'id': progress.id,
+        'challenge_id': progress.challengeId,
+        'user_id': uid,
+        'current_day': progress.currentDay,
+        'completed_days': progress.completedDays,
+        'is_completed': progress.isCompleted,
+        'joined_at': progress.startedAt.toIso8601String(),
+      });
       AppLog.debug('Challenge progress upsert', progress.id);
     } catch (e, st) {
       AppLog.error('Challenge progress upsert failed', e, st);

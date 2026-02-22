@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -59,7 +60,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final ageStr = _ageController.text.trim();
     int? age;
     if (ageStr.isNotEmpty) {
-      age = int.tryParse(ageStr);
+      final parsed = int.tryParse(ageStr);
+      if (parsed != null && parsed >= 0 && parsed <= 99) {
+        age = parsed;
+      }
     }
     final updated = p.copyWith(
       fullName: _fullNameController.text.trim().isEmpty
@@ -410,10 +414,22 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             TextFormField(
               controller: _ageController,
               keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(2),
+              ],
               decoration: InputDecoration(
                 labelText: l10n.age,
                 hintText: l10n.optional,
               ),
+              validator: (v) {
+                if (v == null || v.isEmpty) return null;
+                final val = int.tryParse(v);
+                if (val == null || val < 0 || val > 99) {
+                  return '0-99';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: AppSpacing.sm),
             TextFormField(
