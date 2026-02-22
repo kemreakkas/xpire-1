@@ -157,6 +157,14 @@ final weeklyLeaderboardProvider = FutureProvider<List<WeeklyLeaderboardEntry>>((
   return repo.getWeeklyLeaderboard();
 });
 
+/// This week's leaderboard: top 10 users by XP earned this week.
+final thisWeekLeaderboardProvider =
+    FutureProvider<List<WeeklyLeaderboardEntry>>((ref) async {
+      if (!SupabaseConfig.isConfigured) return [];
+      final repo = ref.read(supabaseLeaderboardRepositoryProvider);
+      return repo.getThisWeekLeaderboard();
+    });
+
 /// Single community challenge by id (for detail page when not a template).
 final communityChallengeByIdProvider =
     FutureProvider.family<CommunityChallenge?, String>((ref, id) async {

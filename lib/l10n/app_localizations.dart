@@ -320,6 +320,12 @@ abstract class AppLocalizations {
   /// **'Profile saved'**
   String get profileSaved;
 
+  /// No description provided for @profanityError.
+  ///
+  /// In en, this message translates to:
+  /// **'Contains inappropriate content'**
+  String get profanityError;
+
   /// No description provided for @newGoal.
   ///
   /// In en, this message translates to:

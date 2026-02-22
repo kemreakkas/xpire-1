@@ -15,6 +15,7 @@ import '../../data/models/user_profile.dart';
 import '../../features/premium/premium_page.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/providers.dart';
+import '../../core/utils/profanity_filter.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -54,6 +55,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   Future<void> _saveProfile() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
     final p = ref.read(profileControllerProvider).value;
     if (p == null) return;
     final ageStr = _ageController.text.trim();
@@ -409,6 +411,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 labelText: l10n.fullName,
                 hintText: l10n.optional,
               ),
+              validator: (v) => ProfanityFilter.validate(
+                v,
+                errorMessage: l10n.profanityError,
+              ),
             ),
             const SizedBox(height: AppSpacing.sm),
             TextFormField(
@@ -416,6 +422,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               decoration: InputDecoration(
                 labelText: l10n.username,
                 hintText: l10n.optional,
+              ),
+              validator: (v) => ProfanityFilter.validate(
+                v,
+                errorMessage: l10n.profanityError,
               ),
             ),
             const SizedBox(height: AppSpacing.sm),

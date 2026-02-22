@@ -135,9 +135,9 @@ class _ChallengeLeaderboardRow extends StatelessWidget {
     final theme = Theme.of(context).textTheme;
     final isTop3 = entry.position <= 3;
     final glowColor = entry.position == 1
-        ? const Color(0xFFEAB308)
+        ? AppTheme.streakGold
         : entry.position == 2
-        ? const Color(0xFF94A3B8)
+        ? AppTheme.textSecondary
         : const Color(0xFFB45309);
 
     return Padding(

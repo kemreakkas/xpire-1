@@ -37,6 +37,7 @@
   "none": "Yok",
   "saveProfile": "Profili kaydet",
   "profileSaved": "Profil kaydedildi",
+  "profanityError": "Uygunsuz ifade içeriyor",
   "newGoal": "Yeni hedef",
   "createCustom": "Özel oluştur",
   "useTemplate": "Önerilenleri kullan",

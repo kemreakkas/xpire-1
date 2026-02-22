@@ -565,6 +565,16 @@ class _CommunityChallengeDetailViewState
       orElse: () => false,
     );
 
+    final participantCount = metaAsync.maybeWhen(
+      data: (list) =>
+          list
+              .where((e) => e.challenge.id == widget.challengeId)
+              .map((e) => e.participantCount)
+              .firstOrNull ??
+          1,
+      orElse: () => 1,
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.challenge.title),
@@ -592,9 +602,7 @@ class _CommunityChallengeDetailViewState
                           label: l10n.daysCount(widget.challenge.durationDays),
                         ),
                         const SizedBox(width: AppSpacing.sm),
-                        _Chip(
-                          label: l10n.bonusXpLabel(widget.challenge.rewardXp),
-                        ),
+                        _Chip(label: l10n.bonusXpLabel(participantCount * 10)),
                       ],
                     ),
                   ],

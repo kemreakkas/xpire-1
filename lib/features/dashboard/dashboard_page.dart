@@ -211,8 +211,6 @@ class _DashboardContent extends ConsumerWidget {
       ),
     );
 
-    final suggestedGoals = goals.take(3).toList(growable: false);
-
     if (isWebWide) {
       return ResponsiveCenter(
         maxWidth: Responsive.maxContentWidth,
@@ -234,11 +232,6 @@ class _DashboardContent extends ConsumerWidget {
                     _TodaysAIPlanSection(),
                     SizedBox(height: spacing),
                     _ActiveChallengeSection(),
-                    SizedBox(height: spacing),
-                    _TodaysSuggestedGoalsSection(
-                      goals: suggestedGoals,
-                      completedTodayIds: completedTodayIds,
-                    ),
                   ],
                 ),
               ),
@@ -249,10 +242,6 @@ class _DashboardContent extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     _RecommendedChallengesSection(),
-                    SizedBox(height: spacing),
-                    _RecommendedGoalsSection(),
-                    SizedBox(height: spacing),
-                    _StartChallengeCta(),
                     SizedBox(height: spacing),
                     Text(
                       l10n.activeGoals,
@@ -296,16 +285,7 @@ class _DashboardContent extends ConsumerWidget {
         SizedBox(height: spacing),
         _ActiveChallengeSection(),
         SizedBox(height: spacing),
-        _TodaysSuggestedGoalsSection(
-          goals: suggestedGoals,
-          completedTodayIds: completedTodayIds,
-        ),
-        SizedBox(height: spacing),
         _RecommendedChallengesSection(),
-        SizedBox(height: spacing),
-        _RecommendedGoalsSection(),
-        SizedBox(height: spacing),
-        _StartChallengeCta(),
         SizedBox(height: spacing),
         Text(l10n.activeGoals, style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: AppSpacing.sm),
@@ -383,49 +363,6 @@ class _TodaysAIPlanSection extends ConsumerWidget {
       },
       loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),
-    );
-  }
-}
-
-class _TodaysSuggestedGoalsSection extends ConsumerWidget {
-  const _TodaysSuggestedGoalsSection({
-    required this.goals,
-    required this.completedTodayIds,
-  });
-
-  final List<Goal> goals;
-  final Set<String> completedTodayIds;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (goals.isEmpty) return const SizedBox.shrink();
-    final l10n = AppLocalizations.of(context)!;
-    final sortedGoals = List<Goal>.from(goals)
-      ..sort((a, b) {
-        final aDone = completedTodayIds.contains(a.id);
-        final bDone = completedTodayIds.contains(b.id);
-        if (aDone == bDone) return 0;
-        return aDone ? 1 : -1;
-      });
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          l10n.todaysSuggestedGoals,
-          style: Theme.of(context).textTheme.titleSmall,
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        ...sortedGoals.map(
-          (goal) => Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-            child: _GoalCard(
-              goal: goal,
-              doneToday: completedTodayIds.contains(goal.id),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
@@ -651,67 +588,6 @@ class _RecommendedChallengesSection extends ConsumerWidget {
   }
 }
 
-class _RecommendedGoalsSection extends ConsumerWidget {
-  const _RecommendedGoalsSection();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
-    final content = ref.watch(contentRepositoryProvider);
-    final templates = content
-        .getTemplates()
-        .where((t) => !t.isPremium)
-        .take(6)
-        .toList();
-    if (templates.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          l10n.recommendedGoals,
-          style: Theme.of(context).textTheme.titleSmall,
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        SizedBox(
-          height: 48,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: templates.length,
-            separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
-            itemBuilder: (context, index) {
-              final t = templates[index];
-              return ActionChip(
-                label: Text(t.title, overflow: TextOverflow.ellipsis),
-                onPressed: () {
-                  ref.read(pendingTemplateIdProvider.notifier).set(t.id);
-                  goOrPush(context, '/goals/create');
-                },
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _StartChallengeCta extends StatelessWidget {
-  const _StartChallengeCta();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return OutlinedButton.icon(
-      onPressed: () => goOrPush(context, '/challenges'),
-      icon: const Icon(Icons.workspace_premium_outlined, size: 20),
-      label: Text(l10n.startChallenge),
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-      ),
-    );
-  }
-}
-
 class _GoalCard extends ConsumerStatefulWidget {
   const _GoalCard({required this.goal, required this.doneToday});
 
@@ -730,7 +606,15 @@ class _GoalCardState extends ConsumerState<_GoalCard> {
     final l10n = AppLocalizations.of(context)!;
     final isInactive = widget.doneToday || _isCompleting;
 
+    final borderColor = widget.doneToday
+        ? AppTheme.successGreen.withValues(alpha: 0.5)
+        : AppTheme.errorRed.withValues(alpha: 0.35);
+
     return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: borderColor, width: 1.5),
+      ),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () => _showGoalOptions(context, l10n),

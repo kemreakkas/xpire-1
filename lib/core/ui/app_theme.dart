@@ -20,6 +20,21 @@ class AppTheme {
   static const Color accent = Color(0xFF3B82F6); // Electric Blue
   static const Color accentCyan = Color(0xFF22D3EE); // Cyan
 
+  // --- Semantic palette (consistent across all pages)
+  static const Color xpBlue = Color(0xFF3B82F6);
+  static const Color xpBlueSoft = Color(0xFF06B6D4);
+  static const Color successGreen = Color(0xFF10B981);
+  static const Color successGreenLight = Color(0xFF34D399);
+  static const Color warningAmber = Color(0xFFF59E0B);
+  static const Color warningAmberLight = Color(0xFFFBBF24);
+  static const Color premiumPurple = Color(0xFF8B5CF6);
+  static const Color premiumPurpleLight = Color(0xFFA78BFA);
+  static const Color errorRed = Color(0xFFEF4444);
+  static const Color errorRedLight = Color(0xFFF87171);
+  static const Color streakGold = Color(0xFFEAB308);
+  static const Color pinkAccent = Color(0xFFEC4899);
+  static const Color tealAccent = Color(0xFF14B8A6);
+
   // --- Legacy aliases (for gradual migration)
   static const Color surfaceDark = primaryBackground;
   static const Color cardDark = cardBackground;

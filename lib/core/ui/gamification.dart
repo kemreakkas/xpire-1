@@ -159,7 +159,7 @@ class StreakPill extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
         color: AppTheme.hoverBackground,
         border: Border.all(
-          color: const Color(0xFFF59E0B).withValues(alpha: 0.4),
+          color: AppTheme.warningAmber.withValues(alpha: 0.4),
           width: 1,
         ),
       ),
@@ -169,7 +169,7 @@ class StreakPill extends StatelessWidget {
           Icon(
             Icons.local_fire_department_rounded,
             size: compact ? 16 : 18,
-            color: const Color(0xFFF59E0B),
+            color: AppTheme.warningAmber,
           ),
           SizedBox(width: compact ? 4 : 6),
           Text(

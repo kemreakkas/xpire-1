@@ -121,6 +121,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profileSaved => 'Profil kaydedildi';
 
   @override
+  String get profanityError => 'Uygunsuz ifade içeriyor';
+
+  @override
   String get newGoal => 'Yeni hedef';
 
   @override

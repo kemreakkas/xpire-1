@@ -62,116 +62,134 @@ class _ChallengeListPageState extends ConsumerState<ChallengeListPage> {
 
     return Material(
       color: Theme.of(context).scaffoldBackgroundColor,
-      child: SingleChildScrollView(
-        padding: EdgeInsets.all(padding),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: _maxContentWidth),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // ---------- Section 1: My Active Challenges ----------
-                Text(
-                  l10n.myActiveChallengesSection,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-                ),
-                SizedBox(
-                  height: isWebWide ? _webSectionSpacing : AppSpacing.md,
-                ),
-                myActiveAsync.when(
-                  loading: () => const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 32),
-                    child: Center(child: CircularProgressIndicator()),
+      child: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(myActiveChallengesWithDetailsProvider);
+          ref.invalidate(communityChallengesWithMetaProvider);
+          ref.invalidate(challengesCreatedTodayCountProvider);
+          await Future.wait([
+            ref.read(myActiveChallengesWithDetailsProvider.future),
+            ref.read(communityChallengesWithMetaProvider.future),
+          ]);
+        },
+        color: AppTheme.accent,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.all(padding),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // ---------- Section 1: My Active Challenges ----------
+                  Text(
+                    l10n.myActiveChallengesSection,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  error: (err, _) => _SectionError(
-                    message: l10n.challengesLoadError,
-                    onRetry: () => ref.invalidate(myActiveParticipantsProvider),
-                    l10n: l10n,
+                  SizedBox(
+                    height: isWebWide ? _webSectionSpacing : AppSpacing.md,
                   ),
-                  data: (list) {
-                    if (list.isEmpty) {
-                      return _ActiveEmptyState(
-                        l10n: l10n,
-                        onScrollToCommunity: _scrollToCommunity,
-                      );
-                    }
-                    return _MyActiveSectionContent(
-                      isWebWide: isWebWide,
-                      items: list,
+                  myActiveAsync.when(
+                    loading: () => const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 32),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                    error: (err, _) => _SectionError(
+                      message: l10n.challengesLoadError,
+                      onRetry: () =>
+                          ref.invalidate(myActiveParticipantsProvider),
                       l10n: l10n,
-                    );
-                  },
-                ),
-                SizedBox(height: isWebWide ? 32 : AppSpacing.lg),
-
-                // ---------- Section 2: Community Challenges ----------
-                KeyedSubtree(
-                  key: _communitySectionKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              l10n.communityChallengesSection,
-                              style: Theme.of(context).textTheme.titleLarge
-                                  ?.copyWith(fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                          Tooltip(
-                            message: createLimitReached
-                                ? l10n.dailyChallengeLimitReached
-                                : l10n.createChallenge,
-                            child: FilledButton.tonal(
-                              onPressed: createLimitReached
-                                  ? null
-                                  : () => context.push('/challenges/create'),
-                              child: Text(l10n.createChallenge),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(
-                        height: isWebWide ? _webSectionSpacing : AppSpacing.md,
-                      ),
-                      communityAsync.when(
-                        loading: () => const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 32),
-                          child: Center(child: CircularProgressIndicator()),
-                        ),
-                        error: (err, _) => _SectionError(
-                          message: l10n.challengesLoadError,
-                          onRetry: () => ref.invalidate(
-                            communityChallengesWithMetaProvider,
-                          ),
+                    ),
+                    data: (list) {
+                      if (list.isEmpty) {
+                        return _ActiveEmptyState(
                           l10n: l10n,
-                        ),
-                        data: (list) {
-                          if (list.isEmpty) {
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 24),
-                              child: Text(
-                                l10n.challengesEmpty,
-                                style: Theme.of(context).textTheme.bodyMedium,
-                                textAlign: TextAlign.center,
-                              ),
-                            );
-                          }
-                          return _CommunitySectionContent(
-                            isWebWide: isWebWide,
-                            items: list,
-                            l10n: l10n,
-                          );
-                        },
-                      ),
-                    ],
+                          onScrollToCommunity: _scrollToCommunity,
+                        );
+                      }
+                      return _MyActiveSectionContent(
+                        isWebWide: isWebWide,
+                        items: list,
+                        l10n: l10n,
+                      );
+                    },
                   ),
-                ),
-                const SizedBox(height: 24),
-              ],
+                  SizedBox(height: isWebWide ? 32 : AppSpacing.lg),
+
+                  // ---------- Section 2: Community Challenges ----------
+                  KeyedSubtree(
+                    key: _communitySectionKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                l10n.communityChallengesSection,
+                                style: Theme.of(context).textTheme.titleLarge
+                                    ?.copyWith(fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                            Tooltip(
+                              message: createLimitReached
+                                  ? l10n.dailyChallengeLimitReached
+                                  : l10n.createChallenge,
+                              child: FilledButton.tonal(
+                                onPressed: createLimitReached
+                                    ? null
+                                    : () => context.push('/challenges/create'),
+                                child: Text(l10n.createChallenge),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: isWebWide
+                              ? _webSectionSpacing
+                              : AppSpacing.md,
+                        ),
+                        communityAsync.when(
+                          loading: () => const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 32),
+                            child: Center(child: CircularProgressIndicator()),
+                          ),
+                          error: (err, _) => _SectionError(
+                            message: l10n.challengesLoadError,
+                            onRetry: () => ref.invalidate(
+                              communityChallengesWithMetaProvider,
+                            ),
+                            l10n: l10n,
+                          ),
+                          data: (list) {
+                            if (list.isEmpty) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 24,
+                                ),
+                                child: Text(
+                                  l10n.challengesEmpty,
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                  textAlign: TextAlign.center,
+                                ),
+                              );
+                            }
+                            return _CommunitySectionContent(
+                              isWebWide: isWebWide,
+                              items: list,
+                              l10n: l10n,
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
             ),
           ),
         ),
@@ -383,13 +401,6 @@ class _MyActiveCard extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             LinearProgressIndicator(value: progressFraction),
-            const SizedBox(height: 4),
-            Text(
-              l10n.bonusXp(item.c.rewardXp),
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.primary,
-              ),
-            ),
           ],
         ),
       ),
@@ -544,7 +555,7 @@ class _CommunityCardState extends ConsumerState<_CommunityCard> {
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Text(
-                    l10n.xpCount(c.rewardXp),
+                    l10n.xpCount(widget.item.participantCount * 10),
                     style: theme.textTheme.labelMedium?.copyWith(
                       color: AppTheme.accent,
                       fontWeight: FontWeight.w600,

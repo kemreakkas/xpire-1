@@ -121,6 +121,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileSaved => 'Profile saved';
 
   @override
+  String get profanityError => 'Contains inappropriate content';
+
+  @override
   String get newGoal => 'New goal';
 
   @override

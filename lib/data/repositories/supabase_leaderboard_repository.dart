@@ -104,7 +104,7 @@ class SupabaseLeaderboardRepository {
     final client = _client;
     if (client == null) return [];
     try {
-      const limit = 20;
+      const limit = 10;
       List<dynamic> res;
       try {
         res =
@@ -166,5 +166,65 @@ class SupabaseLeaderboardRepository {
       return 'Üye_${fallbackId.substring(0, 5)}';
     }
     return 'Anonim Üye';
+  }
+
+  /// This week's leaderboard: top 10 users active this week by total_xp.
+  /// Uses the `users` table filtered by `last_active_date` within this week.
+  Future<List<WeeklyLeaderboardEntry>> getThisWeekLeaderboard() async {
+    if (!SupabaseConfig.isConfigured) return [];
+    final client = _client;
+    if (client == null) return [];
+    try {
+      final now = DateTime.now();
+      final weekday = now.weekday;
+      final monday = DateTime(
+        now.year,
+        now.month,
+        now.day,
+      ).subtract(Duration(days: weekday - 1));
+      final mondayStr =
+          '${monday.year}-${monday.month.toString().padLeft(2, '0')}-${monday.day.toString().padLeft(2, '0')}';
+
+      const limit = 10;
+      List<dynamic> res;
+      try {
+        res =
+            await client
+                    .from('users')
+                    .select(
+                      'id, username, full_name, total_xp, level, streak, is_premium',
+                    )
+                    .gte('last_active_date', mondayStr)
+                    .gt('total_xp', 0)
+                    .order('total_xp', ascending: false)
+                    .limit(limit)
+                as List<dynamic>;
+      } catch (_) {
+        try {
+          res =
+              await client
+                      .from('users')
+                      .select(
+                        'id, username, full_name, total_xp, level, streak, is_premium',
+                      )
+                      .gte('updated_at', monday.toUtc().toIso8601String())
+                      .gt('total_xp', 0)
+                      .order('total_xp', ascending: false)
+                      .limit(limit)
+                  as List<dynamic>;
+        } catch (_) {
+          return [];
+        }
+      }
+
+      final list = res.whereType<Map<String, dynamic>>();
+      var rank = 1;
+      return list
+          .map((row) => _weeklyEntryFromGlobalLeaderboardRow(row, rank++))
+          .toList(growable: false);
+    } catch (e, st) {
+      AppLog.error('This week leaderboard fetch failed', e, st);
+      return [];
+    }
   }
 }

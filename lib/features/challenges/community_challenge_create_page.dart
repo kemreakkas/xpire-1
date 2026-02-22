@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/config/supabase_config.dart';
+import '../../core/utils/profanity_filter.dart';
 import '../../core/ui/app_spacing.dart';
 import '../../core/ui/nav_helpers.dart';
 import '../../core/ui/responsive.dart';
@@ -25,7 +26,6 @@ class _CommunityChallengeCreatePageState
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   int _durationDays = 7;
-  int _rewardXp = 100;
   bool _isPublic = true;
   bool _isSubmitting = false;
 
@@ -57,7 +57,7 @@ class _CommunityChallengeCreatePageState
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         durationDays: _durationDays,
-        rewardXp: _rewardXp,
+        rewardXp: 10, // Base XP, dynamically calculated as participants * 10
         isPublic: _isPublic,
         isPremium: isPremium,
       );
@@ -126,6 +126,11 @@ class _CommunityChallengeCreatePageState
                       final s = (v ?? '').trim();
                       if (s.isEmpty) return l10n.enterTitle;
                       if (s.length < 3) return l10n.keepLonger;
+                      final profanity = ProfanityFilter.validate(
+                        s,
+                        errorMessage: l10n.profanityError,
+                      );
+                      if (profanity != null) return profanity;
                       return null;
                     },
                   ),
@@ -142,6 +147,11 @@ class _CommunityChallengeCreatePageState
                       if ((v ?? '').trim().isEmpty) {
                         return l10n.enterDescription;
                       }
+                      final profanity = ProfanityFilter.validate(
+                        v,
+                        errorMessage: l10n.profanityError,
+                      );
+                      if (profanity != null) return profanity;
                       return null;
                     },
                   ),
@@ -160,19 +170,6 @@ class _CommunityChallengeCreatePageState
                     onChanged: (v) => setState(() => _durationDays = v ?? 7),
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  DropdownButtonFormField<int>(
-                    initialValue: _rewardXp,
-                    decoration: InputDecoration(labelText: l10n.rewardXp),
-                    items: [50, 100, 150, 200, 250]
-                        .map(
-                          (x) => DropdownMenuItem(
-                            value: x,
-                            child: Text(l10n.xpCount(x)),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (v) => setState(() => _rewardXp = v ?? 100),
-                  ),
                   const SizedBox(height: AppSpacing.md),
                   SwitchListTile(
                     title: Text(l10n.publicRoutine),
