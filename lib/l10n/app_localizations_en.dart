@@ -232,6 +232,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Are you sure you want to quit this routine?';
 
   @override
+  String get deleteRoutine => 'Delete Routine';
+
+  @override
+  String get deleteRoutineConfirm =>
+      'Are you sure you want to permanently delete this private routine?';
+
+  @override
   String get yes => 'Yes';
 
   @override
@@ -251,6 +258,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rewardXp => 'Reward XP';
+
+  @override
+  String get publicRoutine => 'Public Routine';
+
+  @override
+  String get publicRoutineDesc => 'Other users can see and join this routine.';
 
   @override
   String get dailyChallengeLimitReached =>
@@ -662,7 +675,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deactivateGoalSubtitle => 'You can re-activate this goal anytime';
 
   @override
-  String get goalDeactivated => 'Goal removed from active list';
+  String get goalDeactivated => 'Goal deactivated';
+
+  @override
+  String get promoCodeTitle => 'Promo Code';
+
+  @override
+  String get promoCodeHint => 'Enter your code';
+
+  @override
+  String get redeemCode => 'Redeem';
+
+  @override
+  String get storeTitle => 'Store (Consumables)';
+
+  @override
+  String get freezePackTitle => '3x Freeze Credits';
+
+  @override
+  String get xpPackTitle => '+500 Bonus XP';
 
   @override
   String get cancel => 'Cancel';

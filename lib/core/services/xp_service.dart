@@ -4,10 +4,7 @@ import '../../data/models/user_profile.dart';
 
 /// Result of applying a completion: updated profile and whether a streak freeze was used.
 class ApplyCompletionResult {
-  const ApplyCompletionResult({
-    required this.profile,
-    this.usedFreeze = false,
-  });
+  const ApplyCompletionResult({required this.profile, this.usedFreeze = false});
   final UserProfile profile;
   final bool usedFreeze;
 }
@@ -61,6 +58,9 @@ class XpService {
     final date = dateOnly(completionDate);
     UserProfile working = profile;
 
+    // Premium multiplier: Double the XP earned
+    final actualEarnedXp = working.isPremium ? earnedXp * 2 : earnedXp;
+
     // Premium: grant 1 freeze credit every 7 days
     if (working.isPremium) {
       working = _refreshFreezeCredits(working, date);
@@ -75,8 +75,8 @@ class XpService {
     );
 
     var level = working.level;
-    var currentXp = working.currentXp + earnedXp;
-    var totalXp = working.totalXp + earnedXp;
+    var currentXp = working.currentXp + actualEarnedXp;
+    var totalXp = working.totalXp + actualEarnedXp;
 
     while (currentXp >= requiredXpForLevel(level)) {
       currentXp -= requiredXpForLevel(level);

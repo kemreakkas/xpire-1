@@ -73,14 +73,6 @@ class LeaderboardPage extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      l10n.leaderboard,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(
                       'Tüm Zamanlar – En Yüksek XP',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppTheme.textSecondary,
@@ -193,15 +185,29 @@ class _WeeklyLeaderboardRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  entry.username,
-                  style: theme.bodyMedium?.copyWith(
-                    color: isCurrentUser
-                        ? AppTheme.accent
-                        : AppTheme.textPrimary,
-                    fontWeight: isCurrentUser ? FontWeight.w600 : null,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        entry.username,
+                        style: theme.bodyMedium?.copyWith(
+                          color: isCurrentUser
+                              ? AppTheme.accent
+                              : AppTheme.textPrimary,
+                          fontWeight: isCurrentUser ? FontWeight.w600 : null,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (entry.isPremium) ...[
+                      const SizedBox(width: 4),
+                      const Icon(
+                        Icons.workspace_premium,
+                        size: 14,
+                        color: Color(0xFFEAB308),
+                      ),
+                    ],
+                  ],
                 ),
                 Text(
                   'Sev. ${entry.level} • ${entry.streak} gün seri',

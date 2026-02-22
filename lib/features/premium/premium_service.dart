@@ -49,8 +49,9 @@ class PremiumService extends ChangeNotifier {
       return;
     }
 
-    _subscription =
-        InAppPurchase.instance.purchaseStream.listen(_onPurchaseUpdate);
+    _subscription = InAppPurchase.instance.purchaseStream.listen(
+      _onPurchaseUpdate,
+    );
 
     await _loadProducts();
     _isLoading = false;
@@ -58,8 +59,9 @@ class PremiumService extends ChangeNotifier {
   }
 
   Future<void> _loadProducts() async {
-    final response = await InAppPurchase.instance
-        .queryProductDetails(PremiumConstants.productIds.toSet());
+    final response = await InAppPurchase.instance.queryProductDetails(
+      PremiumConstants.productIds.toSet(),
+    );
     if (response.notFoundIDs.isNotEmpty) {
       AppLog.info('IAP products not found', {'ids': response.notFoundIDs});
     }
@@ -71,10 +73,39 @@ class PremiumService extends ChangeNotifier {
     for (final purchase in purchases) {
       if (purchase.status == PurchaseStatus.purchased ||
           purchase.status == PurchaseStatus.restored) {
-        _grantPremium();
+        if (purchase.productID == PremiumConstants.premiumMonthly ||
+            purchase.productID == PremiumConstants.premiumWeekly) {
+          _grantPremium();
+        } else if (purchase.productID == PremiumConstants.freezePack3) {
+          _grantFreezePack(3);
+        } else if (purchase.productID == PremiumConstants.xpPack500) {
+          _grantXpPack(500);
+        }
+
         InAppPurchase.instance.completePurchase(purchase);
       }
     }
+  }
+
+  Future<void> _grantFreezePack(int amount) async {
+    final profile =
+        _profileRepo.readSync() ?? await _profileRepo.loadOrCreate();
+    final updated = profile.copyWith(
+      freezeCredits: profile.freezeCredits + amount,
+    );
+    await _profileRepo.save(updated);
+    _ref.invalidate(profileControllerProvider);
+    AppLog.info('Freeze pack granted', {'amount': amount});
+  }
+
+  Future<void> _grantXpPack(int amount) async {
+    final profile =
+        _profileRepo.readSync() ?? await _profileRepo.loadOrCreate();
+    final xpService = _ref.read(xpServiceProvider);
+    final updated = xpService.grantBonusXp(profile, amount);
+    await _profileRepo.save(updated);
+    _ref.invalidate(profileControllerProvider);
+    AppLog.info('XP pack granted', {'amount': amount});
   }
 
   Future<void> _grantPremium() async {
@@ -86,8 +117,11 @@ class PremiumService extends ChangeNotifier {
     AppLog.info('Premium granted');
   }
 
-  Future<bool> buy(String productId) async {
-    if (!_purchaseAvailable) return false;
+  Future<bool> buy(String productId, {bool isConsumable = false}) async {
+    if (!_purchaseAvailable) {
+      AppLog.error('Purchase not available');
+      return false;
+    }
     ProductDetails? product;
     for (final p in _availableProducts) {
       if (p.id == productId) {
@@ -95,9 +129,16 @@ class PremiumService extends ChangeNotifier {
         break;
       }
     }
-    if (product == null) return false;
+    if (product == null) {
+      AppLog.error('Product not found for id', productId);
+      return false;
+    }
     final param = PurchaseParam(productDetails: product);
-    return InAppPurchase.instance.buyNonConsumable(purchaseParam: param);
+    if (isConsumable) {
+      return InAppPurchase.instance.buyConsumable(purchaseParam: param);
+    } else {
+      return InAppPurchase.instance.buyNonConsumable(purchaseParam: param);
+    }
   }
 
   Future<void> restorePurchases() async {
@@ -112,6 +153,7 @@ class PremiumService extends ChangeNotifier {
     final updated = profile.copyWith(isPremium: value);
     await _profileRepo.save(updated);
     _ref.invalidate(profileControllerProvider);
+    _ref.invalidate(weeklyLeaderboardProvider);
     notifyListeners();
   }
 

@@ -51,6 +51,8 @@ class SupabaseCommunityChallengesRepository {
     required String description,
     required int durationDays,
     required int rewardXp,
+    bool isPublic = true,
+    bool isPremium = false,
   }) async {
     if (!SupabaseConfig.isConfigured) {
       throw StateError('Supabase not configured');
@@ -60,9 +62,13 @@ class SupabaseCommunityChallengesRepository {
     if (client == null || uid == null || userId != uid) {
       throw StateError('Not signed in');
     }
-    final count = await countCreatedTodayByUser(userId);
-    if (count >= maxChallengesCreatedPerDay) {
-      throw DailyChallengeLimitException();
+
+    // Check limit only for non-premium users
+    if (!isPremium) {
+      final count = await countCreatedTodayByUser(userId);
+      if (count >= maxChallengesCreatedPerDay) {
+        throw DailyChallengeLimitException();
+      }
     }
     try {
       final now = DateTime.now().toUtc().toIso8601String();
@@ -74,7 +80,7 @@ class SupabaseCommunityChallengesRepository {
             'duration_days': durationDays,
             'reward_xp': rewardXp,
             'created_by': userId,
-            'is_public': true,
+            'is_public': isPublic,
             'created_at': now,
           })
           .select()
@@ -129,6 +135,30 @@ class SupabaseCommunityChallengesRepository {
     } catch (e, st) {
       AppLog.error('Community challenges listPublic failed', e, st);
       return [];
+    }
+  }
+
+  /// Deletes a community challenge. Must be owned by the user.
+  Future<void> deleteChallenge(String challengeId) async {
+    if (!SupabaseConfig.isConfigured) {
+      throw StateError('Supabase not configured');
+    }
+    final client = _client;
+    final uid = _userId;
+    if (client == null || uid == null) {
+      throw StateError('Not signed in');
+    }
+
+    try {
+      // Security: Only allow deletion if the current user is the creator.
+      await client.from('challenges').delete().match({
+        'id': challengeId,
+        'created_by': uid,
+      });
+      AppLog.debug('Community challenge deleted', challengeId);
+    } catch (e, st) {
+      AppLog.error('Community challenges delete failed', e, st);
+      rethrow;
     }
   }
 

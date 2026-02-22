@@ -524,6 +524,18 @@ abstract class AppLocalizations {
   /// **'Are you sure you want to quit this routine?'**
   String get quitChallengeConfirm;
 
+  /// No description provided for @deleteRoutine.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Routine'**
+  String get deleteRoutine;
+
+  /// No description provided for @deleteRoutineConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to permanently delete this private routine?'**
+  String get deleteRoutineConfirm;
+
   /// No description provided for @yes.
   ///
   /// In en, this message translates to:
@@ -565,6 +577,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reward XP'**
   String get rewardXp;
+
+  /// No description provided for @publicRoutine.
+  ///
+  /// In en, this message translates to:
+  /// **'Public Routine'**
+  String get publicRoutine;
+
+  /// No description provided for @publicRoutineDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Other users can see and join this routine.'**
+  String get publicRoutineDesc;
 
   /// No description provided for @dailyChallengeLimitReached.
   ///
@@ -1289,8 +1313,44 @@ abstract class AppLocalizations {
   /// No description provided for @goalDeactivated.
   ///
   /// In en, this message translates to:
-  /// **'Goal removed from active list'**
+  /// **'Goal deactivated'**
   String get goalDeactivated;
+
+  /// No description provided for @promoCodeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Promo Code'**
+  String get promoCodeTitle;
+
+  /// No description provided for @promoCodeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your code'**
+  String get promoCodeHint;
+
+  /// No description provided for @redeemCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Redeem'**
+  String get redeemCode;
+
+  /// No description provided for @storeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Store (Consumables)'**
+  String get storeTitle;
+
+  /// No description provided for @freezePackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'3x Freeze Credits'**
+  String get freezePackTitle;
+
+  /// No description provided for @xpPackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'+500 Bonus XP'**
+  String get xpPackTitle;
 
   /// No description provided for @cancel.
   ///

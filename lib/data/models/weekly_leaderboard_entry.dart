@@ -10,6 +10,7 @@ class WeeklyLeaderboardEntry {
     required this.level,
     required this.streak,
     required this.totalXp,
+    this.isPremium = false,
   });
 
   final int rank;
@@ -18,4 +19,5 @@ class WeeklyLeaderboardEntry {
   final int level;
   final int streak;
   final int totalXp;
+  final bool isPremium;
 }

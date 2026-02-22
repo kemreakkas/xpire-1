@@ -51,8 +51,14 @@ class _ChallengeListPageState extends ConsumerState<ChallengeListPage> {
       data: (v) => v,
       orElse: () => 0,
     );
+
+    // Check if user is premium to completely bypass and hide limit reached restrictions
+    final isPremium = ref
+        .watch(profileControllerProvider)
+        .maybeWhen(data: (p) => p.isPremium, orElse: () => false);
+
     final createLimitReached =
-        createdToday >= 50; // Increased limit so user can add more than 2
+        !isPremium && createdToday >= 50; // Use increased limit if not premium
 
     return Material(
       color: Theme.of(context).scaffoldBackgroundColor,
@@ -287,14 +293,54 @@ class _MyActiveSectionContent extends StatelessWidget {
   }
 }
 
-class _MyActiveCard extends StatelessWidget {
+class _MyActiveCard extends ConsumerWidget {
   const _MyActiveCard({required this.item, required this.l10n});
 
   final ({ChallengeParticipant p, CommunityChallenge c}) item;
   final AppLocalizations l10n;
 
+  Future<void> _leave(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.quitChallenge),
+        content: Text(l10n.quitChallengeConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.no),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            child: Text(l10n.yes),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final uid = ref.read(authUserIdProvider);
+      if (uid == null) return;
+      try {
+        final repo = ref.read(supabaseChallengeParticipantsRepositoryProvider);
+        await repo.leave(uid, item.c.id);
+        ref.invalidate(myActiveParticipantsProvider);
+        ref.invalidate(communityChallengesWithMetaProvider);
+      } catch (e) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.somethingWentWrong)));
+      }
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final progressFraction = item.c.durationDays > 0
         ? item.p.completedDays / item.c.durationDays
@@ -315,6 +361,18 @@ class _MyActiveCard extends StatelessWidget {
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(item.c.title, style: theme.textTheme.titleMedium),
+                ),
+                InkWell(
+                  onTap: () => _leave(context, ref),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Icon(
+                      Icons.close,
+                      size: 18,
+                      color: theme.colorScheme.error.withValues(alpha: 0.7),
+                    ),
+                  ),
                 ),
               ],
             ),

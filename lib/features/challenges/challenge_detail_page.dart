@@ -506,6 +506,51 @@ class _CommunityChallengeDetailViewState
     }
   }
 
+  Future<void> _delete() async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.deleteRoutine),
+        content: Text(l10n.deleteRoutineConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.no),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            child: Text(l10n.yes),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      setState(() => _isJoining = true);
+      try {
+        final repo = ref.read(supabaseCommunityChallengesRepositoryProvider);
+        await repo.deleteChallenge(widget.challengeId);
+        ref.invalidate(myActiveParticipantsProvider);
+        ref.invalidate(communityChallengesWithMetaProvider);
+        ref.invalidate(challengeLeaderboardProvider(widget.challengeId));
+        if (!mounted) return;
+        context.pop();
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.somethingWentWrong)));
+      } finally {
+        if (mounted) setState(() => _isJoining = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -598,14 +643,29 @@ class _CommunityChallengeDetailViewState
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
-              OutlinedButton(
-                onPressed: _isJoining ? null : _leave,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Theme.of(context).colorScheme.error,
-                  side: BorderSide(color: Theme.of(context).colorScheme.error),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: Text(l10n.quitChallenge),
+              Builder(
+                builder: (ctx) {
+                  final uid = ref.watch(authUserIdProvider);
+                  final isOwner = widget.challenge.createdBy == uid;
+                  final isPrivate = !widget.challenge.isPublic;
+                  final canDelete = isOwner && isPrivate;
+
+                  return OutlinedButton(
+                    onPressed: _isJoining
+                        ? null
+                        : (canDelete ? _delete : _leave),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.error,
+                      side: BorderSide(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: Text(
+                      canDelete ? l10n.deleteRoutine : l10n.quitChallenge,
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: AppSpacing.lg),
             ],

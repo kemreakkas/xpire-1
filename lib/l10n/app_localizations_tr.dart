@@ -232,6 +232,13 @@ class AppLocalizationsTr extends AppLocalizations {
       'Bu rutinden vazgeçmek istediğinize emin misiniz?';
 
   @override
+  String get deleteRoutine => 'Rutini Sil';
+
+  @override
+  String get deleteRoutineConfirm =>
+      'Bu özel rutini tamamen silmek istediğinize emin misiniz?';
+
+  @override
   String get yes => 'Evet';
 
   @override
@@ -251,6 +258,13 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get rewardXp => 'Ödül XP';
+
+  @override
+  String get publicRoutine => 'Topluluğa Açık';
+
+  @override
+  String get publicRoutineDesc =>
+      'Bu rutini diğer kullanıcılar da görüp katılabilir.';
 
   @override
   String get dailyChallengeLimitReached =>
@@ -628,7 +642,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get unknownRoutingError => 'Bilinmeyen yönlendirme hatası';
 
   @override
-  String get leaderboard => 'Liderlik Tablosu';
+  String get leaderboard => 'Sıralama';
 
   @override
   String get challengeLeaderboard => 'Mücadele Liderliği';
@@ -662,6 +676,24 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get goalDeactivated => 'Hedef aktif listesinden çıkarıldı';
+
+  @override
+  String get promoCodeTitle => 'Promosyon Kodu';
+
+  @override
+  String get promoCodeHint => 'Kodunuzu girin';
+
+  @override
+  String get redeemCode => 'Kodu İşle';
+
+  @override
+  String get storeTitle => 'Mağaza (Tek Seferlik Ögeler)';
+
+  @override
+  String get freezePackTitle => '3x Seri Dondurma';
+
+  @override
+  String get xpPackTitle => '+500 Bonus XP';
 
   @override
   String get cancel => 'İptal';

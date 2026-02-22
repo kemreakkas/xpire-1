@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-import '../../../core/config/app_env.dart';
 import '../../../core/constants/premium_constants.dart';
 import '../../../core/services/analytics_service.dart';
 import '../../../core/ui/app_spacing.dart';
@@ -105,22 +105,6 @@ class _PremiumPageState extends ConsumerState<PremiumPage> {
                         ).textTheme.bodyLarge?.copyWith(color: Colors.white70),
                       ),
                       const SizedBox(height: AppSpacing.md),
-                      if (AppEnv.buildMode != 'release')
-                        FilledButton(
-                          onPressed: () async {
-                            final messenger = ScaffoldMessenger.of(context);
-                            await service.setPremiumForTesting(true);
-                            if (mounted) {
-                              messenger.showSnackBar(
-                                SnackBar(content: Text(l10n.devPremiumEnabled)),
-                              );
-                            }
-                          },
-                          style: FilledButton.styleFrom(
-                            backgroundColor: AppTheme.accent,
-                          ),
-                          child: Text(l10n.devEnablePremium),
-                        ),
                     ],
                   ),
                 ),
@@ -148,15 +132,15 @@ class _PremiumPageState extends ConsumerState<PremiumPage> {
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 _PriceRow(
-                  productId: PremiumConstants.premiumYearly,
-                  label: l10n.yearly,
+                  productId: PremiumConstants.premiumWeekly,
+                  label: l10n.weekly,
                   pricePlaceholder: '—',
                   service: service,
                   onPurchaseStarted: () =>
                       setState(() => _purchasePending = true),
                   onBuyPressed: () => ref.read(analyticsServiceProvider).track(
                     AnalyticsEvents.premiumClicked,
-                    {'source': 'buy_yearly'},
+                    {'source': 'buy_weekly'},
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
@@ -178,7 +162,22 @@ class _PremiumPageState extends ConsumerState<PremiumPage> {
                   ),
                   child: Text(l10n.restorePurchases),
                 ),
+
+                // Promo Code Section
+                if (!isWeb) _PromoCodeSection(l10n: l10n),
               ],
+            ],
+
+            // Tüketilebilir (Mağaza) Alanı
+            if (!isWeb) ...[
+              const SizedBox(height: AppSpacing.xl),
+              _StoreSection(
+                service: service,
+                l10n: l10n,
+                onPurchaseStarted: () =>
+                    setState(() => _purchasePending = true),
+              ),
+              const SizedBox(height: AppSpacing.xl),
             ],
           ],
         ),
@@ -269,6 +268,7 @@ class _PriceRow extends StatelessWidget {
     required this.service,
     required this.onPurchaseStarted,
     this.onBuyPressed,
+    this.isConsumable = false,
   });
 
   final String productId;
@@ -277,6 +277,7 @@ class _PriceRow extends StatelessWidget {
   final PremiumService service;
   final VoidCallback onPurchaseStarted;
   final VoidCallback? onBuyPressed;
+  final bool isConsumable;
 
   @override
   Widget build(BuildContext context) {
@@ -297,7 +298,7 @@ class _PriceRow extends StatelessWidget {
         trailing: FilledButton(
           onPressed: () async {
             onBuyPressed?.call();
-            final ok = await service.buy(productId);
+            final ok = await service.buy(productId, isConsumable: isConsumable);
             if (ok && context.mounted) {
               onPurchaseStarted();
             }
@@ -306,6 +307,140 @@ class _PriceRow extends StatelessWidget {
           child: Text(AppLocalizations.of(context)!.buy),
         ),
       ),
+    );
+  }
+}
+
+class _PromoCodeSection extends StatefulWidget {
+  const _PromoCodeSection({required this.l10n});
+  final AppLocalizations l10n;
+
+  @override
+  State<_PromoCodeSection> createState() => _PromoCodeSectionState();
+}
+
+class _PromoCodeSectionState extends State<_PromoCodeSection> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _redeem() async {
+    final code = _controller.text.trim();
+    if (code.isEmpty) return;
+
+    // Play Store Redeem URL
+    final url = Uri.parse('https://play.google.com/redeem?code=$code');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: AppSpacing.xl),
+        Text(
+          widget.l10n.promoCodeTitle,
+          style: Theme.of(
+            context,
+          ).textTheme.titleSmall?.copyWith(color: Colors.white70),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _controller,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: widget.l10n.promoCodeHint,
+                  hintStyle: const TextStyle(color: Colors.white38),
+                  filled: true,
+                  fillColor: const Color(0xFF1C1C1E),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            FilledButton(
+              onPressed: _redeem,
+              style: FilledButton.styleFrom(
+                backgroundColor: AppTheme.accent,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 20,
+                  horizontal: AppSpacing.md,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(widget.l10n.redeemCode),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _StoreSection extends StatelessWidget {
+  const _StoreSection({
+    required this.service,
+    required this.l10n,
+    required this.onPurchaseStarted,
+  });
+
+  final PremiumService service;
+  final AppLocalizations l10n;
+  final VoidCallback onPurchaseStarted;
+
+  @override
+  Widget build(BuildContext context) {
+    if (service.isLoading) {
+      return const SizedBox.shrink();
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          l10n.storeTitle,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        _PriceRow(
+          productId: PremiumConstants.freezePack3,
+          label: l10n.freezePackTitle,
+          pricePlaceholder: '—',
+          service: service,
+          isConsumable: true,
+          onPurchaseStarted: onPurchaseStarted,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        _PriceRow(
+          productId: PremiumConstants.xpPack500,
+          label: l10n.xpPackTitle,
+          pricePlaceholder: '—',
+          service: service,
+          isConsumable: true,
+          onPurchaseStarted: onPurchaseStarted,
+        ),
+      ],
     );
   }
 }

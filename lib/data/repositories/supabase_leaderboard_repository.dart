@@ -35,7 +35,7 @@ class SupabaseLeaderboardRepository {
         raw =
             await client
                     .from('challenge_participants')
-                    .select('*, users(username, full_name)')
+                    .select('*, users(username, full_name, is_premium)')
                     .eq('challenge_id', challengeId)
                     .order('completed_days', ascending: false)
                     .order('joined_at', ascending: true)
@@ -76,11 +76,13 @@ class SupabaseLeaderboardRepository {
     int position,
   ) {
     final userId = row['user_id'] as String? ?? '';
-    String username = userId;
+    String username = _formatUsername(null, userId);
     final usersRow = row['users'];
+    bool isPremium = false;
     if (usersRow is Map<String, dynamic>) {
       final raw = usersRow['username'] ?? usersRow['full_name'];
-      if (raw is String && raw.isNotEmpty) username = raw;
+      username = _formatUsername(raw as String?, userId);
+      isPremium = usersRow['is_premium'] == true;
     }
     final completedDays = (row['completed_days'] as num?)?.toInt() ?? 0;
     final joinedAt = row['joined_at'] != null
@@ -92,6 +94,7 @@ class SupabaseLeaderboardRepository {
       username: username,
       completedDays: completedDays,
       joinedAt: joinedAt,
+      isPremium: isPremium,
     );
   }
 
@@ -115,7 +118,9 @@ class SupabaseLeaderboardRepository {
         res =
             await client
                     .from('users')
-                    .select('id, username, full_name, total_xp, level, streak')
+                    .select(
+                      'id, username, full_name, total_xp, level, streak, is_premium',
+                    )
                     .order('total_xp', ascending: false)
                     .limit(limit)
                 as List<dynamic>;
@@ -136,11 +141,12 @@ class SupabaseLeaderboardRepository {
     int rank,
   ) {
     final userId = row['id'] as String? ?? '';
-    final rawName = row['username'] ?? row['full_name'] ?? userId;
-    final username = rawName is String && rawName.isNotEmpty ? rawName : userId;
+    final rawName = row['username'] ?? row['full_name'];
+    final username = _formatUsername(rawName as String?, userId);
     final totalXp = (row['total_xp'] as num?)?.toInt() ?? 0;
     final level = (row['level'] as num?)?.toInt() ?? 1;
     final streak = (row['streak'] as num?)?.toInt() ?? 0;
+    final isPremium = row['is_premium'] == true;
     return WeeklyLeaderboardEntry(
       rank: rank,
       userId: userId,
@@ -148,6 +154,17 @@ class SupabaseLeaderboardRepository {
       level: level,
       streak: streak,
       totalXp: totalXp,
+      isPremium: isPremium,
     );
+  }
+
+  String _formatUsername(String? raw, String fallbackId) {
+    if (raw != null && raw.trim().isNotEmpty && raw != fallbackId) {
+      return raw.trim();
+    }
+    if (fallbackId.length >= 5) {
+      return 'Üye_${fallbackId.substring(0, 5)}';
+    }
+    return 'Anonim Üye';
   }
 }

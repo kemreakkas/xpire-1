@@ -9,6 +9,7 @@ class ChallengeLeaderboardEntry {
     required this.username,
     required this.completedDays,
     required this.joinedAt,
+    this.isPremium = false,
   });
 
   final int position;
@@ -16,4 +17,5 @@ class ChallengeLeaderboardEntry {
   final String username;
   final int completedDays;
   final DateTime joinedAt;
+  final bool isPremium;
 }

@@ -105,9 +105,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _buildProfileHeader(context, p, l10n),
-                  const SizedBox(height: AppSpacing.lg),
-                  _buildLanguageSection(context, l10n, currentLocale),
-                  const SizedBox(height: AppSpacing.sm),
                   _buildEditableSection(context, p, l10n),
                   const SizedBox(height: AppSpacing.sm),
                   _buildReminderSection(context, p, l10n),
@@ -162,6 +159,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     },
                     child: Text(l10n.signOut),
                   ),
+                  const SizedBox(height: AppSpacing.xl),
+                  _buildLanguageSection(context, l10n, currentLocale),
                   const SizedBox(height: AppSpacing.xl),
                   FutureBuilder<PackageInfo>(
                     future: PackageInfo.fromPlatform(),
@@ -313,9 +312,21 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        l10n.levelLabel(p.level),
-                        style: Theme.of(context).textTheme.titleLarge,
+                      Row(
+                        children: [
+                          Text(
+                            l10n.levelLabel(p.level),
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          if (p.isPremiumEffective) ...[
+                            const SizedBox(width: 6),
+                            const Icon(
+                              Icons.workspace_premium,
+                              size: 18,
+                              color: Color(0xFFEAB308),
+                            ),
+                          ],
+                        ],
                       ),
                       const SizedBox(height: 4),
                       StreakPill(days: p.streak),

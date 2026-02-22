@@ -26,6 +26,7 @@ class _CommunityChallengeCreatePageState
   final _descriptionController = TextEditingController();
   int _durationDays = 7;
   int _rewardXp = 100;
+  bool _isPublic = true;
   bool _isSubmitting = false;
 
   @override
@@ -40,16 +41,33 @@ class _CommunityChallengeCreatePageState
     if (_isSubmitting) return;
     final uid = ref.read(authUserIdProvider);
     if (uid == null || !SupabaseConfig.isConfigured) return;
+
+    // Check if user is premium to bypass limits
+    final profileProviderValue = ref.read(profileControllerProvider);
+    final isPremium = profileProviderValue.maybeWhen(
+      data: (p) => p.isPremium,
+      orElse: () => false,
+    );
+
     setState(() => _isSubmitting = true);
     try {
       final repo = ref.read(supabaseCommunityChallengesRepositoryProvider);
-      await repo.createChallenge(
+      final newChallenge = await repo.createChallenge(
         userId: uid,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         durationDays: _durationDays,
         rewardXp: _rewardXp,
+        isPublic: _isPublic,
+        isPremium: isPremium,
       );
+      if (!_isPublic) {
+        final participantsRepo = ref.read(
+          supabaseChallengeParticipantsRepositoryProvider,
+        );
+        await participantsRepo.join(uid, newChallenge.id);
+        ref.invalidate(myActiveParticipantsProvider);
+      }
       ref.invalidate(communityChallengesWithMetaProvider);
       ref.invalidate(challengesCreatedTodayCountProvider);
       if (!mounted) return;
@@ -154,6 +172,14 @@ class _CommunityChallengeCreatePageState
                         )
                         .toList(),
                     onChanged: (v) => setState(() => _rewardXp = v ?? 100),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  SwitchListTile(
+                    title: Text(l10n.publicRoutine),
+                    subtitle: Text(l10n.publicRoutineDesc),
+                    value: _isPublic,
+                    onChanged: (v) => setState(() => _isPublic = v),
+                    contentPadding: EdgeInsets.zero,
                   ),
                   const SizedBox(height: AppSpacing.xl),
                   FilledButton(
