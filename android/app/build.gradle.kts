@@ -17,7 +17,8 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace = "com.taurusapp.xpire"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973"
+
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
@@ -61,6 +62,7 @@ android {
     packaging {
         jniLibs {
             useLegacyPackaging = true
+            keepDebugSymbols += setOf("**/*.so")
         }
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
