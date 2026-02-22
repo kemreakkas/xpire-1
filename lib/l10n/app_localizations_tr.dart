@@ -649,7 +649,20 @@ class AppLocalizationsTr extends AppLocalizations {
   String get rankLabel => 'Sıra';
 
   @override
-  String xpCount(Object count) {
+  String xpCount(int count) {
     return '$count XP';
   }
+
+  @override
+  String get deactivateGoal => 'Aktif hedeflerden çıkar';
+
+  @override
+  String get deactivateGoalSubtitle =>
+      'Bu hedefi istediğiniz zaman tekrar aktif edebilirsiniz';
+
+  @override
+  String get goalDeactivated => 'Hedef aktif listesinden çıkarıldı';
+
+  @override
+  String get cancel => 'İptal';
 }

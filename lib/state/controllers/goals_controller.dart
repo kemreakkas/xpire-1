@@ -20,7 +20,7 @@ class GoalsController extends AsyncNotifier<List<Goal>> {
   Future<void> addGoal(Goal goal) async {
     final repo = ref.read(goalRepositoryProvider);
     await repo.upsert(goal);
-    // Re-sync from Supabase so the state reflects the server''s truth.
+    // Re-sync from Supabase so the state reflects the server's truth.
     await repo.syncFromCloud();
     final goals = repo.listSync();
     // ignore: avoid_print
@@ -40,5 +40,11 @@ class GoalsController extends AsyncNotifier<List<Goal>> {
     print('Loaded goals count: ${fresh.length}');
     AppLog.debug('Goals added', goals.length);
     state = AsyncData(fresh);
+  }
+
+  /// Directly updates the goals state with a new list.
+  /// Used by GoalActionsController after deactivation to avoid re-fetching.
+  void setStateDirectly(List<Goal> goals) {
+    state = AsyncData(goals);
   }
 }

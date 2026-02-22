@@ -169,6 +169,16 @@ class GoalActionsController extends AsyncNotifier<void> {
         );
   }
 
+  /// Deactivates a goal (removes it from the active list).
+  /// Updates both Supabase and local Hive, then refreshes GoalsController.
+  Future<void> deactivateGoal(String goalId) async {
+    final repo = ref.read(goalRepositoryProvider);
+    await repo.setActive(goalId: goalId, isActive: false);
+    // Refresh GoalsController so dashboard removes the deactivated goal.
+    final goals = repo.listSync();
+    ref.read(goalsControllerProvider.notifier).setStateDirectly(goals);
+  }
+
   static int _daysCompletedForChallenge(
     DateTime startedAt,
     int durationDays,

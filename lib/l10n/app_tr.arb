@@ -257,5 +257,10 @@
   "completedDaysLabel": "Gün",
   "noLeaderboardYet": "Henüz kayıt yok",
   "rankLabel": "Sıra",
-  "xpCount": "{count} XP"
+  "xpCount": "{count} XP",
+  "@xpCount": {"placeholders": {"count": {"type": "int"}}},
+  "deactivateGoal": "Aktif hedeflerden çıkar",
+  "deactivateGoalSubtitle": "Bu hedefi istediğiniz zaman tekrar aktif edebilirsiniz",
+  "goalDeactivated": "Hedef aktif listesinden çıkarıldı",
+  "cancel": "İptal"
 }

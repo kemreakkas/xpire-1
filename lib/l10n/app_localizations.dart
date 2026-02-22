@@ -1272,7 +1272,31 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{count} XP'**
-  String xpCount(Object count);
+  String xpCount(int count);
+
+  /// No description provided for @deactivateGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from active goals'**
+  String get deactivateGoal;
+
+  /// No description provided for @deactivateGoalSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You can re-activate this goal anytime'**
+  String get deactivateGoalSubtitle;
+
+  /// No description provided for @goalDeactivated.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal removed from active list'**
+  String get goalDeactivated;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
 }
 
 class _AppLocalizationsDelegate

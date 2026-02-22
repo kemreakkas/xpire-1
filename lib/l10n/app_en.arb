@@ -257,5 +257,10 @@
   "completedDaysLabel": "Days",
   "noLeaderboardYet": "No entries yet",
   "rankLabel": "Rank",
-  "xpCount": "{count} XP"
+  "xpCount": "{count} XP",
+  "@xpCount": {"placeholders": {"count": {"type": "int"}}},
+  "deactivateGoal": "Remove from active goals",
+  "deactivateGoalSubtitle": "You can re-activate this goal anytime",
+  "goalDeactivated": "Goal removed from active list",
+  "cancel": "Cancel"
 }

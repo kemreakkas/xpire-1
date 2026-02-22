@@ -150,7 +150,9 @@ class _GoalCreatePageState extends ConsumerState<GoalCreatePage> {
         'goal_id': goal.id,
       });
       setState(() => _selectedTemplate = null);
-      ref.invalidate(goalsControllerProvider);
+      // addGoal() already updates state = AsyncData(goals) internally.
+      // Invalidating here would reset the provider to loading before navigation
+      // completes, causing the dashboard to flicker. Navigate directly.
       if (!mounted) return;
       context.go('/dashboard');
     } catch (e, st) {

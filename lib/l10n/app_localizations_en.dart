@@ -651,7 +651,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rankLabel => 'Rank';
 
   @override
-  String xpCount(Object count) {
+  String xpCount(int count) {
     return '$count XP';
   }
+
+  @override
+  String get deactivateGoal => 'Remove from active goals';
+
+  @override
+  String get deactivateGoalSubtitle => 'You can re-activate this goal anytime';
+
+  @override
+  String get goalDeactivated => 'Goal removed from active list';
+
+  @override
+  String get cancel => 'Cancel';
 }

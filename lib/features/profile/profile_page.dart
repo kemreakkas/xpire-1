@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import '../../core/config/supabase_config.dart';
 import '../../core/locale/locale_controller.dart';
 import '../../core/ui/app_spacing.dart';
 import '../../core/ui/app_theme.dart';
@@ -156,15 +155,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       child: Text(l10n.upgradeToPremium),
                     ),
                   ),
-                  if (SupabaseConfig.isConfigured) ...[
-                    const SizedBox(height: AppSpacing.md),
-                    OutlinedButton(
-                      onPressed: () async {
-                        await ref.read(logoutAndClearProvider)();
-                      },
-                      child: Text(l10n.signOut),
-                    ),
-                  ],
+                  const SizedBox(height: AppSpacing.md),
+                  OutlinedButton(
+                    onPressed: () async {
+                      await ref.read(logoutAndClearProvider)();
+                    },
+                    child: Text(l10n.signOut),
+                  ),
                   const SizedBox(height: AppSpacing.xl),
                   FutureBuilder<PackageInfo>(
                     future: PackageInfo.fromPlatform(),

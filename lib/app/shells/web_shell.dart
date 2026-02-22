@@ -56,25 +56,16 @@ class WebShell extends ConsumerWidget {
                             ? 'Account'
                             : l10n.profile),
                   onLogout: () => ref.read(logoutAndClearProvider)(),
-                  showLogout: SupabaseConfig.isConfigured,
+                  showLogout: true,
                   showNewGoal:
                       location == '/dashboard' && SupabaseConfig.isConfigured,
                   onNewGoal: () => context.go('/goals/create'),
                   l10n: l10n,
                 ),
                 Expanded(
-                  child: SingleChildScrollView(
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(
-                          maxWidth: Responsive.maxContentWidth,
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(AppSpacing.lg),
-                          child: child,
-                        ),
-                      ),
-                    ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    child: child,
                   ),
                 ),
               ],

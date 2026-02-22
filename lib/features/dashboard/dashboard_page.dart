@@ -169,10 +169,11 @@ class _DashboardContent extends ConsumerWidget {
               ),
             ],
             const SizedBox(height: AppSpacing.md),
-            Row(
+            Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
               children: [
                 StreakPill(days: profile.streak),
-                const SizedBox(width: AppSpacing.sm),
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.sm + 4,
@@ -213,77 +214,72 @@ class _DashboardContent extends ConsumerWidget {
     final suggestedGoals = goals.take(3).toList(growable: false);
 
     if (isWebWide) {
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 4,
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (showWebReminderBanner) ...[
-                    _WebReminderBanner(l10n: l10n),
-                    SizedBox(height: spacing),
-                  ],
-                  levelCard,
-                  SizedBox(height: spacing),
-                  _TodaysAIPlanSection(),
-                  SizedBox(height: spacing),
-                  _ActiveChallengeSection(),
-                  SizedBox(height: spacing),
-                  _TodaysSuggestedGoalsSection(
-                    goals: suggestedGoals,
-                    completedTodayIds: completedTodayIds,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          SizedBox(width: spacing),
-          Expanded(
-            flex: 6,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _RecommendedChallengesSection(),
+      return ResponsiveCenter(
+        maxWidth: Responsive.maxContentWidth,
+        child: SingleChildScrollView(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 4,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (showWebReminderBanner) ...[
+                      _WebReminderBanner(l10n: l10n),
                       SizedBox(height: spacing),
-                      _RecommendedGoalsSection(),
-                      SizedBox(height: spacing),
-                      _StartChallengeCta(),
-                      SizedBox(height: spacing),
-                      Text(
-                        l10n.activeGoals,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
                     ],
-                  ),
+                    levelCard,
+                    SizedBox(height: spacing),
+                    _TodaysAIPlanSection(),
+                    SizedBox(height: spacing),
+                    _ActiveChallengeSection(),
+                    SizedBox(height: spacing),
+                    _TodaysSuggestedGoalsSection(
+                      goals: suggestedGoals,
+                      completedTodayIds: completedTodayIds,
+                    ),
+                  ],
                 ),
-                Expanded(
-                  child: sortedActiveGoals.isEmpty
-                      ? const _EmptyGoals()
-                      : ListView.separated(
-                          itemCount: sortedActiveGoals.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: AppSpacing.sm),
-                          itemBuilder: (context, index) {
-                            final goal = sortedActiveGoals[index];
-                            final doneToday = completedTodayIds.contains(
-                              goal.id,
-                            );
-                            return _GoalCard(goal: goal, doneToday: doneToday);
-                          },
-                        ),
+              ),
+              SizedBox(width: spacing),
+              Expanded(
+                flex: 6,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _RecommendedChallengesSection(),
+                    SizedBox(height: spacing),
+                    _RecommendedGoalsSection(),
+                    SizedBox(height: spacing),
+                    _StartChallengeCta(),
+                    SizedBox(height: spacing),
+                    Text(
+                      l10n.activeGoals,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    if (sortedActiveGoals.isEmpty)
+                      const _EmptyGoals()
+                    else
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: sortedActiveGoals.length,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: AppSpacing.sm),
+                        itemBuilder: (context, index) {
+                          final goal = sortedActiveGoals[index];
+                          final doneToday = completedTodayIds.contains(goal.id);
+                          return _GoalCard(goal: goal, doneToday: doneToday);
+                        },
+                      ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       );
     }
 
@@ -735,80 +731,158 @@ class _GoalCardState extends ConsumerState<_GoalCard> {
     final isInactive = widget.doneToday || _isCompleting;
 
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.goal.title,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 4),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _Chip(text: _categoryLabel(l10n, widget.goal.category)),
-                      _Chip(text: l10n.onceADay),
-                      _Chip(
-                        text: _difficultyLabel(l10n, widget.goal.difficulty),
-                      ),
-                      _Chip(text: l10n.xpCount(widget.goal.baseXp)),
-                    ],
-                  ),
-                ],
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => _showGoalOptions(context, l10n),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.goal.title,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _Chip(text: _categoryLabel(l10n, widget.goal.category)),
+                        _Chip(text: l10n.onceADay),
+                        _Chip(
+                          text: _difficultyLabel(l10n, widget.goal.difficulty),
+                        ),
+                        _Chip(text: l10n.xpCount(widget.goal.baseXp)),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            FilledButton(
-              onPressed: isInactive
-                  ? null
-                  : () async {
-                      setState(() => _isCompleting = true);
-                      try {
-                        final result = await ref
-                            .read(goalActionsControllerProvider.notifier)
-                            .completeGoal(goalId: widget.goal.id);
-                        if (!context.mounted) return;
-                        final msg = switch (result.status) {
-                          GoalCompleteStatus.success =>
-                            result.leveledUp
-                                ? l10n.xpEarnedLevelUp(
-                                    result.earnedXp,
-                                    result.newLevel,
-                                  )
-                                : l10n.xpEarned(result.earnedXp),
-                          GoalCompleteStatus.alreadyCompleted =>
-                            l10n.todayAlreadyCompleted,
-                          GoalCompleteStatus.goalNotFound => l10n.goalNotFound,
-                          GoalCompleteStatus.failure => l10n.somethingWentWrong,
-                        };
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text(msg)));
-                        if (result.leveledUp && context.mounted) {
-                          showLevelUpOverlay(
+              const SizedBox(width: AppSpacing.sm),
+              FilledButton(
+                onPressed: isInactive
+                    ? null
+                    : () async {
+                        setState(() => _isCompleting = true);
+                        try {
+                          final result = await ref
+                              .read(goalActionsControllerProvider.notifier)
+                              .completeGoal(goalId: widget.goal.id);
+                          if (!context.mounted) return;
+                          final msg = switch (result.status) {
+                            GoalCompleteStatus.success =>
+                              result.leveledUp
+                                  ? l10n.xpEarnedLevelUp(
+                                      result.earnedXp,
+                                      result.newLevel,
+                                    )
+                                  : l10n.xpEarned(result.earnedXp),
+                            GoalCompleteStatus.alreadyCompleted =>
+                              l10n.todayAlreadyCompleted,
+                            GoalCompleteStatus.goalNotFound =>
+                              l10n.goalNotFound,
+                            GoalCompleteStatus.failure =>
+                              l10n.somethingWentWrong,
+                          };
+                          ScaffoldMessenger.of(
                             context,
-                            newLevel: result.newLevel,
-                          );
+                          ).showSnackBar(SnackBar(content: Text(msg)));
+                          if (result.leveledUp && context.mounted) {
+                            showLevelUpOverlay(
+                              context,
+                              newLevel: result.newLevel,
+                            );
+                          }
+                        } finally {
+                          if (mounted) setState(() => _isCompleting = false);
                         }
-                      } finally {
-                        if (mounted) setState(() => _isCompleting = false);
-                      }
-                    },
-              child: Text(widget.doneToday ? l10n.done : l10n.complete),
-            ),
-          ],
+                      },
+                child: Text(widget.doneToday ? l10n.done : l10n.complete),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
-}
+
+  void _showGoalOptions(BuildContext context, AppLocalizations l10n) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Theme.of(ctx).colorScheme.outlineVariant,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  widget.goal.title,
+                  style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ListTile(
+                leading: const Icon(
+                  Icons.remove_circle_outline,
+                  color: Colors.redAccent,
+                ),
+                title: Text(l10n.deactivateGoal),
+                subtitle: Text(l10n.deactivateGoalSubtitle),
+                onTap: () async {
+                  Navigator.of(ctx).pop();
+                  try {
+                    await ref
+                        .read(goalActionsControllerProvider.notifier)
+                        .deactivateGoal(widget.goal.id);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.goalDeactivated)),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.somethingWentWrong)),
+                      );
+                    }
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.close),
+                title: Text(l10n.cancel),
+                onTap: () => Navigator.of(ctx).pop(),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+} // end _GoalCardState
 
 class _Chip extends StatelessWidget {
   const _Chip({required this.text});

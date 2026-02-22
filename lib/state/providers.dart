@@ -481,21 +481,16 @@ final statsProvider = Provider<AsyncValue<Stats>>((ref) {
 // Router — Auth routing: login first; then profile exists → dashboard, else → onboarding.
 final goRouterProvider = Provider<GoRouter>((ref) {
   final isAuth = ref.watch(isAuthenticatedProvider);
-  final hasConfig = SupabaseConfig.isConfigured;
   final profileAsync = ref.watch(profileControllerProvider);
 
-  // Login is always the first screen when Supabase is configured.
-  final initialLocation = hasConfig ? '/login' : '/dashboard';
+  // Always start at login. If logged in, redirect will handle it.
+  final initialLocation = '/login';
 
   return GoRouter(
     initialLocation: initialLocation,
     redirect: (context, state) {
       final path = state.matchedLocation;
       final onAuthScreen = path == '/login' || path == '/register';
-
-      if (!hasConfig) {
-        return null; // no redirect when Supabase not configured (offline)
-      }
 
       // 1. Not authenticated → /login only.
       if (!isAuth) {
