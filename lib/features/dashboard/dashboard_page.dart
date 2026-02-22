@@ -20,6 +20,7 @@ import '../../data/models/user_profile.dart';
 import '../../data/models/challenge_progress.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/providers.dart';
+import '../../core/utils/share_service.dart';
 
 bool _hasActiveFromModel(ChallengeProgress? p) =>
     p != null && !p.isCompleted && p.failedAt == null;
@@ -244,7 +245,7 @@ class _DashboardContent extends ConsumerWidget {
                     _RecommendedChallengesSection(),
                     SizedBox(height: spacing),
                     Text(
-                      l10n.activeGoals,
+                      '${l10n.activeGoals} (${sortedActiveGoals.where((g) => completedTodayIds.contains(g.id)).length}/${sortedActiveGoals.length})',
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: AppSpacing.sm),
@@ -287,7 +288,10 @@ class _DashboardContent extends ConsumerWidget {
         SizedBox(height: spacing),
         _RecommendedChallengesSection(),
         SizedBox(height: spacing),
-        Text(l10n.activeGoals, style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          '${l10n.activeGoals} (${sortedActiveGoals.where((g) => completedTodayIds.contains(g.id)).length}/${sortedActiveGoals.length})',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: AppSpacing.sm),
         if (sortedActiveGoals.isEmpty)
           const _EmptyGoals()
@@ -636,12 +640,25 @@ class _GoalCardState extends ConsumerState<_GoalCard> {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        _Chip(text: _categoryLabel(l10n, widget.goal.category)),
+                        _Chip(
+                          text: _categoryLabel(l10n, widget.goal.category),
+                          color: AppTheme.getCategoryColor(
+                            widget.goal.category.name,
+                          ),
+                        ),
                         _Chip(text: l10n.onceADay),
                         _Chip(
                           text: _difficultyLabel(l10n, widget.goal.difficulty),
+                          color: switch (widget.goal.difficulty) {
+                            GoalDifficulty.easy => AppTheme.successGreen,
+                            GoalDifficulty.medium => AppTheme.warningAmber,
+                            GoalDifficulty.hard => AppTheme.errorRed,
+                          },
                         ),
-                        _Chip(text: l10n.xpCount(widget.goal.baseXp)),
+                        _Chip(
+                          text: l10n.xpCount(widget.goal.baseXp),
+                          color: AppTheme.xpBlue,
+                        ),
                       ],
                     ),
                   ],
@@ -728,6 +745,15 @@ class _GoalCardState extends ConsumerState<_GoalCard> {
               ),
               const SizedBox(height: 8),
               ListTile(
+                leading: const Icon(Icons.share, color: AppTheme.xpBlue),
+                title: Text(l10n.share),
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  ShareService.shareGoal(widget.goal.title, l10n);
+                },
+              ),
+
+              ListTile(
                 leading: const Icon(
                   Icons.remove_circle_outline,
                   color: Colors.redAccent,
@@ -769,12 +795,15 @@ class _GoalCardState extends ConsumerState<_GoalCard> {
 } // end _GoalCardState
 
 class _Chip extends StatelessWidget {
-  const _Chip({required this.text});
+  const _Chip({required this.text, this.color});
 
   final String text;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
+    final effectiveColor =
+        color ?? Theme.of(context).colorScheme.outlineVariant;
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.sm + 2,
@@ -782,9 +811,18 @@ class _Chip extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+        border: Border.all(
+          color: color?.withValues(alpha: 0.4) ?? effectiveColor,
+        ),
+        color: color?.withValues(alpha: 0.08),
       ),
-      child: Text(text, style: Theme.of(context).textTheme.labelMedium),
+      child: Text(
+        text,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          color: color ?? Theme.of(context).textTheme.labelMedium?.color,
+          fontWeight: color != null ? FontWeight.w600 : null,
+        ),
+      ),
     );
   }
 }

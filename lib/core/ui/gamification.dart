@@ -115,15 +115,19 @@ class LevelBadge extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: AppTheme.cardBackground,
+        gradient: LinearGradient(
+          colors: [AppTheme.cardBackground, AppTheme.hoverBackground],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         border: Border.all(
-          color: AppTheme.accent.withValues(alpha: 0.5),
-          width: 1.5,
+          color: AppTheme.accent.withValues(alpha: 0.6),
+          width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.accent.withValues(alpha: 0.15),
-            blurRadius: 8,
+            color: AppTheme.accent.withValues(alpha: 0.25),
+            blurRadius: 12,
             spreadRadius: 0,
           ),
         ],
@@ -132,8 +136,9 @@ class LevelBadge extends StatelessWidget {
         '$level',
         style: (theme.textTheme.labelLarge ?? const TextStyle()).copyWith(
           fontSize: fontSize ?? (size * 0.45),
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w800,
           color: AppTheme.textPrimary,
+          letterSpacing: -0.5,
         ),
       ),
     );
@@ -157,10 +162,17 @@ class StreakPill extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        color: AppTheme.hoverBackground,
+        gradient: LinearGradient(
+          colors: [
+            AppTheme.warningAmber.withValues(alpha: 0.15),
+            AppTheme.warningAmber.withValues(alpha: 0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         border: Border.all(
-          color: AppTheme.warningAmber.withValues(alpha: 0.4),
-          width: 1,
+          color: AppTheme.warningAmber.withValues(alpha: 0.3),
+          width: 1.2,
         ),
       ),
       child: Row(
@@ -175,8 +187,8 @@ class StreakPill extends StatelessWidget {
           Text(
             '${days}d',
             style: theme.textTheme.labelLarge?.copyWith(
-              color: AppTheme.textPrimary,
-              fontWeight: FontWeight.w600,
+              color: AppTheme.warningAmber,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ],

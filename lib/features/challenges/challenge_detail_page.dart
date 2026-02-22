@@ -18,6 +18,7 @@ import '../../features/auth/auth_controller.dart';
 import '../../features/leaderboard/challenge_leaderboard_section.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/providers.dart';
+import '../../core/utils/share_service.dart';
 
 class ChallengeDetailPage extends ConsumerWidget {
   const ChallengeDetailPage({super.key, required this.challengeId});
@@ -579,6 +580,13 @@ class _CommunityChallengeDetailViewState
       appBar: AppBar(
         title: Text(widget.challenge.title),
         automaticallyImplyLeading: shouldShowAppBarLeading(context),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share),
+            onPressed: () =>
+                ShareService.shareChallenge(widget.challenge.title, l10n),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.grid),
@@ -600,9 +608,13 @@ class _CommunityChallengeDetailViewState
                       children: [
                         _Chip(
                           label: l10n.daysCount(widget.challenge.durationDays),
+                          color: AppTheme.xpBlue,
                         ),
                         const SizedBox(width: AppSpacing.sm),
-                        _Chip(label: l10n.bonusXpLabel(participantCount * 10)),
+                        _Chip(
+                          label: l10n.bonusXpLabel(participantCount * 10),
+                          color: AppTheme.warningAmber,
+                        ),
                       ],
                     ),
                   ],
@@ -632,19 +644,25 @@ class _CommunityChallengeDetailViewState
               )
             else ...[
               Card(
-                color: Theme.of(context).colorScheme.primaryContainer,
+                color: AppTheme.successGreen.withValues(alpha: 0.1),
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.md),
                   child: Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.check_circle_outline,
-                        color: Theme.of(context).colorScheme.primary,
+                        color: AppTheme.successGreen,
                       ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Text(
-                        l10n.youAreDoingThisChallenge,
-                        style: Theme.of(context).textTheme.titleSmall,
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: Text(
+                          l10n.youAreDoingThisChallenge,
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                color: AppTheme.successGreen,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
                       ),
                     ],
                   ),
@@ -794,9 +812,10 @@ class _ClaimBonusSection extends StatelessWidget {
 }
 
 class _Chip extends StatelessWidget {
-  const _Chip({required this.label});
+  const _Chip({required this.label, this.color});
 
   final String label;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -804,9 +823,22 @@ class _Chip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        border: Border.all(
+          color:
+              color?.withValues(alpha: 0.4) ??
+              Theme.of(context).colorScheme.outlineVariant,
+        ),
+        color:
+            color?.withValues(alpha: 0.1) ??
+            Theme.of(context).colorScheme.surfaceContainerHighest,
       ),
-      child: Text(label, style: Theme.of(context).textTheme.labelSmall),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: color,
+          fontWeight: color != null ? FontWeight.w600 : null,
+        ),
+      ),
     );
   }
 }

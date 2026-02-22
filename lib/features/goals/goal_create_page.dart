@@ -113,26 +113,27 @@ class _GoalCreatePageState extends ConsumerState<GoalCreatePage> {
 
     try {
       final profile = ref.read(profileControllerProvider).value;
-      if (profile != null && !profile.isPremiumEffective) {
+      if (profile != null) {
+        final isPremium = profile.isPremiumEffective;
+        final limit = isPremium ? 20 : 10;
         final existingGoals = ref.read(goalsControllerProvider).value ?? [];
         final activeCount = existingGoals.where((g) => g.isActive).length;
-        if (activeCount >= 10) {
+
+        if (activeCount >= limit) {
           if (mounted) {
             final l10n = AppLocalizations.of(context)!;
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(l10n.freeGoalLimitReached)));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.goalLimitReachedWithCount(limit))),
+            );
           }
           setState(() => _isSaving = false);
           return;
         }
       }
 
-      final xpService = ref.read(xpServiceProvider);
       final title = _titleController.text.trim();
       final now = DateTime.now();
-      final baseXp =
-          _selectedTemplate?.baseXp ?? xpService.earnedXpFor(_difficulty);
+      final baseXp = _selectedTemplate != null ? _selectedTemplate!.baseXp : 10;
 
       final goal = Goal(
         id: const Uuid().v4(),
@@ -231,6 +232,7 @@ class _CustomFormTab extends StatelessWidget {
           TextFormField(
             controller: titleController,
             textInputAction: TextInputAction.done,
+            readOnly: selectedTemplate != null,
             decoration: InputDecoration(
               labelText: l10n.title,
               prefixIcon: const Icon(Icons.edit_note),
@@ -259,26 +261,29 @@ class _CustomFormTab extends StatelessWidget {
                   ),
                 )
                 .toList(growable: false),
-            onChanged: (v) => onCategoryChanged(v ?? category),
+            onChanged: selectedTemplate != null
+                ? null
+                : (v) => onCategoryChanged(v ?? category),
           ),
           const SizedBox(height: AppSpacing.md),
-          DropdownButtonFormField<GoalDifficulty>(
-            initialValue: difficulty,
-            decoration: InputDecoration(
-              labelText: l10n.difficulty,
-              prefixIcon: const Icon(Icons.speed_outlined),
-              border: OutlineInputBorder(borderRadius: AppRadius.mdRadius),
+          if (selectedTemplate != null)
+            DropdownButtonFormField<GoalDifficulty>(
+              initialValue: difficulty,
+              decoration: InputDecoration(
+                labelText: l10n.difficulty,
+                prefixIcon: const Icon(Icons.speed_outlined),
+                border: OutlineInputBorder(borderRadius: AppRadius.mdRadius),
+              ),
+              items: GoalDifficulty.values
+                  .map(
+                    (d) => DropdownMenuItem(
+                      value: d,
+                      child: Text(_difficultyLabel(l10n, d)),
+                    ),
+                  )
+                  .toList(growable: false),
+              onChanged: null,
             ),
-            items: GoalDifficulty.values
-                .map(
-                  (d) => DropdownMenuItem(
-                    value: d,
-                    child: Text(_difficultyLabel(l10n, d)),
-                  ),
-                )
-                .toList(growable: false),
-            onChanged: (v) => onDifficultyChanged(v ?? difficulty),
-          ),
           const Spacer(),
           if (isWebWide)
             Align(

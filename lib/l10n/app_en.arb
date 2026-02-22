@@ -38,6 +38,11 @@
   "saveProfile": "Save profile",
   "profileSaved": "Profile saved",
   "profanityError": "Contains inappropriate content",
+  "share": "Share",
+  "shareGoalPrefix": "I just started this goal on Xpire:",
+  "shareChallengePrefix": "I just joined this routine on Xpire:",
+  "shareAppSuffix": "Join me and reach your goals too!",
+  "shareAppMessage": "I'm using Xpire for personal growth and goal tracking, it's a great app! You should try it.",
   "newGoal": "New goal",
   "createCustom": "Create Custom",
   "useTemplate": "Use Template",
@@ -144,7 +149,12 @@
   "noActiveGoals": "No active goals yet.\nTap + to create your first one.",
   "noActiveGoalsTitle": "No goals yet",
   "noActiveGoalsDescription": "Create your first goal to start earning XP and building streaks.",
-  "freeGoalLimitReached": "Free limit: max 10 active goals.",
+  "goalLimitReachedWithCount": "Limit: max {count} active goals.",
+  "@goalLimitReachedWithCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "goalsCompleted": "Goals completed",
   "currentStreak": "Current streak",
   "completedToday": "Completed today",
@@ -244,7 +254,7 @@
   "bonusXpLabel": "{xp} bonus XP",
   "@bonusXpLabel": {"placeholders": {"xp": {"type": "int"}}},
   "benefits": "Benefits",
-  "unlimitedGoals": "Unlimited Goals",
+  "unlimitedGoals": "20 active goal limit",
   "streakProtection": "Streak Protection",
   "premiumPurchasesMobileOnly": "Premium purchases available on mobile only.",
   "devPremiumEnabled": "Dev: Premium enabled",

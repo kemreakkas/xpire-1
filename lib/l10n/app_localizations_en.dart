@@ -124,6 +124,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profanityError => 'Contains inappropriate content';
 
   @override
+  String get share => 'Share';
+
+  @override
+  String get shareGoalPrefix => 'I just started this goal on Xpire:';
+
+  @override
+  String get shareChallengePrefix => 'I just joined this routine on Xpire:';
+
+  @override
+  String get shareAppSuffix => 'Join me and reach your goals too!';
+
+  @override
+  String get shareAppMessage =>
+      'I\'m using Xpire for personal growth and goal tracking, it\'s a great app! You should try it.';
+
+  @override
   String get newGoal => 'New goal';
 
   @override
@@ -356,7 +372,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Create your first goal to start earning XP and building streaks.';
 
   @override
-  String get freeGoalLimitReached => 'Free limit: max 10 active goals.';
+  String goalLimitReachedWithCount(int count) {
+    return 'Limit: max $count active goals.';
+  }
 
   @override
   String get goalsCompleted => 'Goals completed';
@@ -612,7 +630,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get benefits => 'Benefits';
 
   @override
-  String get unlimitedGoals => 'Unlimited Goals';
+  String get unlimitedGoals => '20 active goal limit';
 
   @override
   String get streakProtection => 'Streak Protection';

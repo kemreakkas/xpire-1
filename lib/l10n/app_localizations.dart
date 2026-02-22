@@ -326,6 +326,36 @@ abstract class AppLocalizations {
   /// **'Contains inappropriate content'**
   String get profanityError;
 
+  /// No description provided for @share.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get share;
+
+  /// No description provided for @shareGoalPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'I just started this goal on Xpire:'**
+  String get shareGoalPrefix;
+
+  /// No description provided for @shareChallengePrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'I just joined this routine on Xpire:'**
+  String get shareChallengePrefix;
+
+  /// No description provided for @shareAppSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'Join me and reach your goals too!'**
+  String get shareAppSuffix;
+
+  /// No description provided for @shareAppMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m using Xpire for personal growth and goal tracking, it\'s a great app! You should try it.'**
+  String get shareAppMessage;
+
   /// No description provided for @newGoal.
   ///
   /// In en, this message translates to:
@@ -740,11 +770,11 @@ abstract class AppLocalizations {
   /// **'Create your first goal to start earning XP and building streaks.'**
   String get noActiveGoalsDescription;
 
-  /// No description provided for @freeGoalLimitReached.
+  /// No description provided for @goalLimitReachedWithCount.
   ///
   /// In en, this message translates to:
-  /// **'Free limit: max 10 active goals.'**
-  String get freeGoalLimitReached;
+  /// **'Limit: max {count} active goals.'**
+  String goalLimitReachedWithCount(int count);
 
   /// No description provided for @goalsCompleted.
   ///
@@ -1193,7 +1223,7 @@ abstract class AppLocalizations {
   /// No description provided for @unlimitedGoals.
   ///
   /// In en, this message translates to:
-  /// **'Unlimited Goals'**
+  /// **'20 active goal limit'**
   String get unlimitedGoals;
 
   /// No description provided for @streakProtection.

@@ -38,6 +38,11 @@
   "saveProfile": "Profili kaydet",
   "profileSaved": "Profil kaydedildi",
   "profanityError": "Uygunsuz ifade içeriyor",
+  "share": "Paylaş",
+  "shareGoalPrefix": "Xpire'da hedefime başladım:",
+  "shareChallengePrefix": "Xpire'da bu rutine katıldım:",
+  "shareAppSuffix": "Sen de bana katıl ve hedeflerine ulaş!",
+  "shareAppMessage": "Kişisel gelişim ve hedef takibi için Xpire kullanıyorum, harika bir uygulama! Denemelisin.",
   "newGoal": "Yeni hedef",
   "createCustom": "Özel oluştur",
   "useTemplate": "Önerilenleri kullan",
@@ -144,7 +149,12 @@
   "noActiveGoals": "Henüz aktif hedef yok.\nİlk hedefinizi oluşturmak için + dokunun.",
   "noActiveGoalsTitle": "Henüz hedef yok",
   "noActiveGoalsDescription": "XP kazanmak ve seri oluşturmak için ilk hedefinizi ekleyin.",
-  "freeGoalLimitReached": "Ücretsiz limit: En fazla 10 aktif hedef ekleyebilirsiniz.",
+  "goalLimitReachedWithCount": "Limit: En fazla {count} aktif hedef ekleyebilirsiniz.",
+  "@goalLimitReachedWithCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "goalsCompleted": "Tamamlanan hedef",
   "currentStreak": "Mevcut seri",
   "completedToday": "Bugün tamamlanan",
@@ -244,7 +254,7 @@
   "bonusXpLabel": "{xp} bonus XP",
   "@bonusXpLabel": {"placeholders": {"xp": {"type": "int"}}},
   "benefits": "Avantajlar",
-  "unlimitedGoals": "Sınırsız hedef",
+  "unlimitedGoals": "20 aktif hedef limiti",
   "streakProtection": "Seri koruması",
   "premiumPurchasesMobileOnly": "Premium satın alma yalnızca mobilde kullanılabilir.",
   "devPremiumEnabled": "Geliştirici: Premium etkinleştirildi",

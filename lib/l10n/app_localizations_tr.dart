@@ -124,6 +124,22 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profanityError => 'Uygunsuz ifade içeriyor';
 
   @override
+  String get share => 'Paylaş';
+
+  @override
+  String get shareGoalPrefix => 'Xpire\'da hedefime başladım:';
+
+  @override
+  String get shareChallengePrefix => 'Xpire\'da bu rutine katıldım:';
+
+  @override
+  String get shareAppSuffix => 'Sen de bana katıl ve hedeflerine ulaş!';
+
+  @override
+  String get shareAppMessage =>
+      'Kişisel gelişim ve hedef takibi için Xpire kullanıyorum, harika bir uygulama! Denemelisin.';
+
+  @override
   String get newGoal => 'Yeni hedef';
 
   @override
@@ -357,8 +373,9 @@ class AppLocalizationsTr extends AppLocalizations {
       'XP kazanmak ve seri oluşturmak için ilk hedefinizi ekleyin.';
 
   @override
-  String get freeGoalLimitReached =>
-      'Ücretsiz limit: En fazla 10 aktif hedef ekleyebilirsiniz.';
+  String goalLimitReachedWithCount(int count) {
+    return 'Limit: En fazla $count aktif hedef ekleyebilirsiniz.';
+  }
 
   @override
   String get goalsCompleted => 'Tamamlanan hedef';
@@ -611,7 +628,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get benefits => 'Avantajlar';
 
   @override
-  String get unlimitedGoals => 'Sınırsız hedef';
+  String get unlimitedGoals => '20 aktif hedef limiti';
 
   @override
   String get streakProtection => 'Seri koruması';

@@ -35,6 +35,24 @@ class AppTheme {
   static const Color pinkAccent = Color(0xFFEC4899);
   static const Color tealAccent = Color(0xFF14B8A6);
 
+  static Color getCategoryColor(String name) {
+    return switch (name.toLowerCase().trim()) {
+      'fitness' => successGreen,
+      'health' => successGreen,
+      'study' => xpBlue,
+      'work' => xpBlue,
+      'focus' => xpBlueSoft,
+      'mind' => tealAccent,
+      'finance' => warningAmber,
+      'discipline' => warningAmber,
+      'selfgrowth' => premiumPurple,
+      'creativity' => pinkAccent,
+      'social' => pinkAccent,
+      'digitaldetox' => errorRed,
+      _ => textSecondary,
+    };
+  }
+
   // --- Legacy aliases (for gradual migration)
   static const Color surfaceDark = primaryBackground;
   static const Color cardDark = cardBackground;
@@ -161,6 +179,7 @@ class AppTheme {
         style: FilledButton.styleFrom(
           backgroundColor: accent,
           foregroundColor: textPrimary,
+          elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: AppRadius.mdRadius),
         ),
       ),
